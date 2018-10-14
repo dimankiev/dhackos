@@ -1,5 +1,3 @@
-from typing import List, Union
-
 try:
     import getpass as pwd
     import random as rnd
@@ -7,6 +5,7 @@ try:
     from os import stat, remove
     from colorama import Fore, Back, Style, init
     from math import pi
+    from typing import List, Union
 except Exception as e:
     print("\nPlease, use the commands below to install required modules: ")
     print("""
