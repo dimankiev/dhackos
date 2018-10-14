@@ -60,7 +60,7 @@ Links
 - [aaa114-project](http://aaa114-project.tk)
 - [dimankiev (E-Mail)](mailto:dimankiev@gmail.com)
 
-Alpha-testing
+Alpha-testers
 -------------------
 - [Taptrue(Telegram)](https://t.me/taptrue)
 
