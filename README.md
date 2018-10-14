@@ -60,6 +60,10 @@ Links
 - [aaa114-project](http://aaa114-project.tk)
 - [dimankiev (E-Mail)](mailto:dimankiev@gmail.com)
 
+Alpha-testing
+-------------------
+- [Taptrue(Telegram)](https://t.me/taptrue)
+
 License
 ---------
 Hacker Simulator is GNU GPL v.3 Licensed  
