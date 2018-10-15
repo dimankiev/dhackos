@@ -21,9 +21,9 @@ print(Fore.YELLOW + "Loading...")
 companies = ["LG", "Samsung", "Lenovo", "Sony", "nVidia", "FBI", "CIA", "Valve", "Facebook", "Google",
              "Introversion Software", "Tesla Motors", "aaa114-project", "Microsoft", "SoloLearn Inc.", "Pharma",
              "Nestle", "Unknown", "Doogee", "Bitcoin", "Ethereum", "Intel", "AMD", "ASIC", "Telegram", "LinkedIn",
-             "Instagram", "DEFCON"]
+             "Instagram", "DEFCON", "SCP"]
 about = {
-    "dHackOS v.": "0.1.0b",
+    "dHackOS v.": "0.1.1b",
     "Author :": "dimankiev",
     "Idea :": "dimankiev",
     "Code :": "dimankiev",
@@ -108,14 +108,12 @@ def getVarFromFile(filename):
 
 
 def loadGame():
-    global player, apps, stats, success_load, minehistory, targets, ips, bot, bot_apps
+    global player, apps, stats, success_load, minehistory, targets, ips
     success_load = 0
     try:
         getVarFromFile("save.bin")
         player = data.player
         apps = data.apps
-        bot = data.bot
-        bot_apps = data.bot_apps
         stats = data.stats
         minehistory = data.minehistory
         targets = data.targets
@@ -133,15 +131,14 @@ def loadGame():
 
 def saveGame():
     save = open("save.bin", "w")
-    save.write("player = " + str(player) + "\n" + "apps = " + str(apps) + "\n" + "stats = " + str(stats) + "\n" + "minehistory = " + str(minehistory) + "\n" + "bot = " + str(bot) + "\n" + "bot_apps = " + str(bot_apps) + "\n" + "targets = " + str(targets) + "\n" + "ips = " + str(ips))
+    save.write("player = " + str(player) + "\n" + "apps = " + str(apps) + "\n" + "stats = " + str(stats) + "\n" + "minehistory = " + str(minehistory) + "\n" + "targets = " + str(targets) + "\n" + "ips = " + str(ips))
     save.close()
 
 
 def newGame():
     while True:
-        global player, apps, stats, minehistory, bot, bot_apps
+        global player, apps, stats, minehistory
         player = {"bitcoins": 0.0, "ip": genIP(), "dev": 0, "ipv6": 0, "xp": 0}
-        bot = {"bitcoins": 0.0, "ip": genIP(), "dev": 0, "ipv6": 0, "xp": 0}
         player["username"] = input("Please enter your username: ").lower()
         player["password"] = pwd.getpass("Please enter your password: ").lower()
         if len(player["password"]) < 6:
@@ -152,9 +149,7 @@ def newGame():
             print(Fore.RED + "Passwords do not match !\nPlease try again\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" + sr)
         else:
             player["password"] = md5(player["password"], "dhackos")
-            bot["password"] = md5(player["password"], "dhackos_bot")
             apps = {"scanner": 1, "spam": 1, "bruteforce": 1, "sdk": 1, "ipspoofing": 1, "dechyper": 1, "miner": 1}
-            bot_apps = {"scanner": 1, "spam": 1, "bruteforce": 1, "sdk": 1, "ipspoofing": 1, "dechyper": 1, "miner": 1}
             stats = {"btc_earned": 0.0, "shacked": 0, "xp": 0, "rep": 0, "scans": 0, "level": 1, "symbols": 0,
                      "launches": 0, "miners": 1}
             addInStats("launches", 1, int)
@@ -211,10 +206,8 @@ def mineBitcoins():
     while True:
         time.sleep(1)
         mined = float(rnd.uniform(0.000001, (0.05 * apps["miner"])) * stats["miners"])
-        bot_mined = float(rnd.uniform(0.000001, (0.05 * bot_apps["miner"])) * stats["miners"])
         now = datetime.datetime.now()
         player["bitcoins"] = player["bitcoins"] + mined
-        bot["bitcoins"] = bot["bitcoins"] + bot_mined
         addInStats("btc_earned", mined, float)
         minehistory[str(minelog)] = str(
             "[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "] Mined: " + str(mined) + " BTC")
@@ -233,43 +226,50 @@ def genTarget(k, ip):
     target = {"ip": ip,
               "bitcoins": rnd.uniform((apps["bruteforce"] + apps["sdk"] + apps["ipspoofing"] + apps["dechyper"]) // 4,
                                       pi * float(target["firewall"]) + float(k)),
-              "company": companies[rnd.randint(0, 27)], "port": rnd.randint(1, 65535), "service": "OpenSSH",
+              "company": companies[rnd.randint(0, int(len(companies) - 1))], "port": rnd.randint(1, 65535), "service": "OpenSSH",
               "firewall": target["firewall"], "k": k, "miner_injected": 0}
     return target;
 
 
 def genTargetsList():
-    global ips, targets, target
+    global ips, targets, target, percent, gentargets
+    gentargets = 1
     ips = []
     targets = {}
+    i = 0
     for i in range(0, 10000):
+        percent = float(i) / 100
+        if percent == 99.99:
+            percent = 100.0
         ip = str(genIP())
         target = genTarget(i, ip)
         targets[ip] = target
         ips.append(str(ip))
+    gentargets = 0
     target = {}
-    targets[bot["ip"]] = bot
 
 
 def loadTargetList():
     t_num = 0
     target_list = []
     while True:
-        num = rnd.randint(0, 9999)
-        ip = str(ips[num])
-        target = targets[ip]
-        middle_strength = (apps["bruteforce"] + apps["sdk"] + apps["ipspoofing"] + apps["dechyper"]) // 4
-        if target["firewall"] > (middle_strength + (middle_strength) // 4):
-            continue
-        else:
-            target_list.append(ip)
-            t_num += 1
-            if t_num == 11:
-                break
-            else:
+        if gentargets == 0:
+            num = rnd.randint(0, 9999)
+            if gentargets == 1:
                 continue
-    return target_list
-
+            ip = str(ips[num])
+            target = targets[ip]
+            middle_strength = (apps["bruteforce"] + apps["sdk"] + apps["ipspoofing"] + apps["dechyper"]) // 4
+            if target["firewall"] > (middle_strength + (middle_strength) // 4):
+                continue
+            else:
+                target_list.append(ip)
+                t_num += 1
+                if t_num == 11:
+                    return target_list
+                    break
+                else:
+                    continue
 
 def resetTargetBalance():
     while True:
@@ -320,46 +320,33 @@ def searchTargets(is_bot):
         for i in range(0, 11): print(str(i) + ". " + target_list[int(i)])
         print(Style.NORMAL + "Please choose the IP, launch dHackOSf and enter the IP what you choosen" + sr)
     else:
-        bot["xp"] += 10
         bot_target_list = loadTargetList()
-        bot_target = bot_target_list[rnd.randint(0,10)]
+        bot_target = targets[bot_target_list[rnd.randint(0,10)]]
         return bot_target
 
 
 def gameBot():
-    bot["firewall"] = 1
     while True:
-        bot["firewall"] += (apps["bruteforce"] + apps["sdk"] + apps["ipspoofing"] + apps["dechyper"]) // 4
-        bot_target = searchTargets(1)
-        bot_scantime = 30
-        time.sleep(bot_scantime)
-        bot_hack_chance = rnd.randint(0,100)
-        fw_vs_bot = rnd.randint(0,100)
-        if bot_hack_chance >= fw_vs_bot:
-            xp = rnd.randint(0, 200)
-            bot["xp"] = bot["xp"] + xp
-            bot_hack_time = rnd.randint(0,60)
-            time.sleep(bot_hack_time)
-            bot["bitcoins"] += float(bot_target[0])
-            bot_earn = pi / (100 / (bot_apps["spam"] + bot_apps["ipspoofing"]))
-            bot["bitcoins"] = bot["bitcoins"] + bot_earn
-        else:
-            continue
-        ip = bot_target[0]
-        targets[ip] = bot_target
-        cost = float(0)
-        for app in bot_apps:
-            cost = cost + float(pi * (float(apps[app]) + 1))
-        if bot["bitcoins"] >= cost:
-            for app in bot_apps:
-                bot_apps[app] = bot_apps[app] + 1
-                bot["bitcoins"] -= cost
-        targets[bot["ip"]] = bot
+        if gentargets == 0:
+            time.sleep(1)
+            bot = searchTargets(1)
+            while True:
+                if gentargets == 0:
+                    target = searchTargets(1)
+                    if bot == target:
+                        continue
+                    else:
+                        break
+            bot['bitcoins'] += target['bitcoins']
+            bot['firewall'] += rnd.randint(bot['firewall'],int(target['firewall'] + bot['firewall']))
+            target["firewall"] += rnd.randint(bot["firewall"],int(target["firewall"] + bot["firewall"]))
+            target["bitcoins"] = 0
 
 
 print(Fore.GREEN + ".::LOADED::." + sr)
 target = {}
 target_list = []
+gentargets = 0
 while True:
     sol = input("Please choose, load game from save or start new game ?(Save/New): ").lower()
     if sol == "sav" or sol == "save" or sol == "sv" or sol == "sve":
@@ -456,9 +443,16 @@ while True:
         showVoc(stats, stats_desc, None, Fore.CYAN)
     elif cmd == "rescan_subnet":
         print(Fore.CYAN + "Scanning subnet...")
-        for i in progressbar.progressbar(range(100)): time.sleep(0.02)
-        print(Fore.CYAN + str(len(ips)) + " in subnet" + sr)
-        genTargetsList()
+        sub_gen = threading.Thread(target=genTargetsList)
+        sub_gen.daemon = True
+        sub_gen.start()
+        while True:
+            time.sleep(1)
+            print("Scanning in progress... " + str(percent) + "%")
+            if percent == 100.0:
+                print(Fore.GREEN + "Done !")
+                break
+        print(Fore.CYAN + str(len(ips)) + " servers in subnet" + sr)
     elif cmd == "load_list":
         if target_list != []:
             print(Fore.GREEN + "IP list:" + Style.BRIGHT)
