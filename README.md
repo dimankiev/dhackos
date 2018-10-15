@@ -22,9 +22,9 @@ Installation (Android)
    pip install progressbar2
    pip install hashlib
    ```
-6. Use `git clone https://github.com/dimankiev/hacker_sim_2.git` command to download the game
+6. Use `git clone https://github.com/dimankiev/dhackos.git` command to download the game
 
-7. Use `cd hacker_sim_2` and `python dhackos.py` commands to start the game
+7. Use `cd dhackos` and `python dhackos.py` commands to start the game
 
 8. Game will say you which modules is not installed if you doesn't installed them.
 
@@ -51,7 +51,7 @@ Installation (Windows)
 
 5. Open cmd and use the commands below to launch the game:
    ```
-   cd {FOLDER_WHERE_YOU_EXTRACTED_THE_GAME_ARCHIVE}\hacker_sim_2
+   cd {FOLDER_WHERE_YOU_EXTRACTED_THE_GAME_ARCHIVE}\dhackos
    python dhackos.py
    ```
 6. Game will say you which modules is not installed if you doesn't installed them.
@@ -121,7 +121,7 @@ License
 Hacker Simulator is GNU GPL v.3 Licensed  
 Copyright © 2018 dimankiev (http://aaa114-project.tk)
 
-[1]: https://github.com/dimankiev/hacker_sim_2
+[1]: https://github.com/dimankiev/dhackos
 [2]: https://termux.com/
 [3]: https://www.python.org/downloads/windows/
-[4]: https://github.com/dimankiev/hacker_sim_2/archive/master.zip
+[4]: https://github.com/dimankiev/dhackos/archive/master.zip
