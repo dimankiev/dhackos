@@ -23,7 +23,7 @@ companies = ["LG", "Samsung", "Lenovo", "Sony", "nVidia", "FBI", "CIA", "Valve",
              "Nestle", "Unknown", "Doogee", "Bitcoin", "Ethereum", "Intel", "AMD", "ASIC", "Telegram", "LinkedIn",
              "Instagram", "DEFCON", "SCP"]
 about = {
-    "dHackOS v.": "0.1.1b",
+    "dHackOS v.": "0.1.2b",
     "Author :": "dimankiev",
     "Idea :": "dimankiev",
     "Code :": "dimankiev",
@@ -219,10 +219,11 @@ def mineBitcoins():
 
 def genTarget(k, ip):
     target = {}
-    target["firewall"] = rnd.randint((apps["bruteforce"] + apps["sdk"] + apps["ipspoofing"] + apps["dechyper"]) // 4,
-                                     (apps["bruteforce"] + apps["sdk"] + apps["ipspoofing"] + apps["dechyper"]) // 4 + (
-                                         rnd.randint(1, (apps["bruteforce"] + apps["sdk"] + apps["ipspoofing"] + apps[
-                                             "dechyper"]) // 4)) + k)
+    min = (apps["bruteforce"] + apps["sdk"] + apps["ipspoofing"] + apps["dechyper"]) // 4
+    if k == 1:
+        target["firewall"] = min
+    else:
+        target["firewall"] = rnd.randint(min,(min + (rnd.randint(1, min)) + k))
     target = {"ip": ip,
               "bitcoins": rnd.uniform((apps["bruteforce"] + apps["sdk"] + apps["ipspoofing"] + apps["dechyper"]) // 4,
                                       pi * float(target["firewall"]) + float(k)),
@@ -252,24 +253,31 @@ def genTargetsList():
 def loadTargetList():
     t_num = 0
     target_list = []
+    attempt = 0
     while True:
         if gentargets == 0:
             num = rnd.randint(0, 9999)
             if gentargets == 1:
                 continue
+            attempt += 1
             ip = str(ips[num])
             target = targets[ip]
-            middle_strength = (apps["bruteforce"] + apps["sdk"] + apps["ipspoofing"] + apps["dechyper"]) // 4
-            if target["firewall"] > (middle_strength + (middle_strength) // 4):
-                continue
-            else:
-                target_list.append(ip)
-                t_num += 1
-                if t_num == 11:
-                    return target_list
-                    break
-                else:
+            middle_strength = ((apps["bruteforce"] + apps["sdk"] + apps["ipspoofing"] + apps["dechyper"]) // 4)
+            if attempt <= 10000:
+                if target["firewall"] > (middle_strength + middle_strength):
                     continue
+                else:
+                    target_list.append(ip)
+                    t_num += 1
+                    if t_num == 11:
+                        return target_list
+                        break
+                    else:
+                        continue
+            else:
+                return target_list
+        else:
+        	continue
 
 def resetTargetBalance():
     while True:
@@ -315,13 +323,13 @@ def searchTargets(is_bot):
         print("Deep scanning...")
         for i in progressbar.progressbar(range(100)): time.sleep(0.05 / float(apps["scanner"]))
         scantime = rnd.uniform(0.02, 1) * (100 / apps["scanner"])
-        target_list = loadTargetList()
+        player_target_list = loadTargetList()
         print(Fore.GREEN + "Targets found !\nIP list:" + Style.BRIGHT)
-        for i in range(0, 11): print(str(i) + ". " + target_list[int(i)])
+        for i in range(0, len(player_target_list)): print(str(i) + ". " + player_target_list[int(i)])
         print(Style.NORMAL + "Please choose the IP, launch dHackOSf and enter the IP what you choosen" + sr)
     else:
         bot_target_list = loadTargetList()
-        bot_target = targets[bot_target_list[rnd.randint(0,10)]]
+        bot_target = targets[bot_target_list[rnd.randint(0,(len(bot_target_list) - 1))]]
         return bot_target
 
 
@@ -338,8 +346,8 @@ def gameBot():
                     else:
                         break
             bot['bitcoins'] += target['bitcoins']
-            bot['firewall'] += rnd.randint(bot['firewall'],int(target['firewall'] + bot['firewall']))
-            target["firewall"] += rnd.randint(bot["firewall"],int(target["firewall"] + bot["firewall"]))
+            #bot['firewall'] += rnd.randint(bot['firewall'],int(target['firewall'] + bot['firewall']))
+            #target["firewall"] += rnd.randint(bot["firewall"],int(target["firewall"] + bot["firewall"]))
             target["bitcoins"] = 0
 
 
