@@ -1,10 +1,12 @@
-Hacker Simulator 2
+Hacker Simulator 2 (dHackOS)
 =============
 [Hacker Simulator 2][1] - Reincarnation of [Hacker Simulator 1](https://github.com/dimankiev/hacker_sim)
 
 Written using Python 3.6.
 
 Bots, subnets, interesting hacking process, miners, and a lot of interesting things included in this game.
+
+Actual version: 0.1.2b
 
 Installation (Android)
 -----------------------
