@@ -129,3 +129,4 @@ Copyright © 2018 dimankiev (http://aaa114-project.tk)
 [2]: https://termux.com/
 [3]: https://www.python.org/downloads/windows/
 [4]: https://github.com/dimankiev/dhackos/archive/master.zip
+[5]: https://dimankiev.github.io/dhackos/
