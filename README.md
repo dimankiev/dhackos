@@ -16,25 +16,27 @@ Installation (Android)
 
 3. Launch [Termux][2].
 
-4. Use `pkg install python` command to install Python (It's needed to launch the game)
+4. Use `cd ~` command to go to Termux home directory.
 
-5. Install required modules by commands below:
+5. Use `pkg install python` command to install Python (It's needed to launch the game).
+
+6. Install required modules by commands below:
    ```
    pip install colorama
    pip install progressbar2
    pip install hashlib
    ```
-6. Use `git clone https://github.com/dimankiev/dhackos.git` command to download the game
+7. Use `git clone https://github.com/dimankiev/dhackos.git` command to download the game
 
-7. Use `cd dhackos` and `python dhackos.py` commands to start the game
+8. Use `cd dhackos` and `python dhackos.py` commands to start the game
 
-8. Game will say you which modules is not installed if you doesn't installed them.
+9. Game will say you which modules is not installed if you doesn't installed them.
 
-9. Have a good time :D
+10. Have a good time :D
 
 Installation (Windows)
 -----------------------
-1. Download and install (with administrator rights) the [Python][3] (Python version must be >= 3.6).
+1. Download and install (with administrator rights) the [Python][3] (Python version must be >= 3.5).
 
 2. Install required modules by commands below:
    ```
