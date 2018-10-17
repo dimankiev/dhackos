@@ -1,0 +1,198 @@
+
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+
+<!-- Begin Jekyll SEO tag v2.5.0 -->
+<title>Hacker Simulator 2 (dHackOS) | dhackos</title>
+<meta name="generator" content="Jekyll v3.7.4" />
+<meta property="og:title" content="Hacker Simulator 2 (dHackOS)" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="dHackOS (Hacker Simulator 2)" />
+<meta property="og:description" content="dHackOS (Hacker Simulator 2)" />
+<link rel="canonical" href="https://dimankiev.github.io/dhackos/" />
+<meta property="og:url" content="https://dimankiev.github.io/dhackos/" />
+<meta property="og:site_name" content="dhackos" />
+<script type="application/ld+json">
+{"@type":"WebSite","headline":"Hacker Simulator 2 (dHackOS)","url":"https://dimankiev.github.io/dhackos/","name":"dhackos","description":"dHackOS (Hacker Simulator 2)","@context":"http://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <link rel="stylesheet" href="/dhackos/assets/css/style.css?v=655a87e38234eb64b7b51d0722fee29596286811">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">dHackOS</h1>
+      <h2 class="project-tagline">dimankiev's Hack OS</h2>
+      
+        <a href="https://github.com/dimankiev/dhackos" class="btn">View on GitHub</a>
+        <a href="https://github.com/dimankiev/dhackos/blob/master/README.md" class="btn">Installation Guide</a>
+        <a href="https://t.me/dimankiev" class="btn" style="border: blue;background: rgba(30,30,255,50)">dimankiev</a>
+      
+      
+    </section>
+
+    <section class="main-content">
+      <h1 id="hacker-simulator-2-dhackos">Hacker Simulator 2 (dHackOS)</h1>
+<p><a href="https://github.com/dimankiev/dhackos">Hacker Simulator 2</a> - Reincarnation of <a href="https://github.com/dimankiev/hacker_sim">Hacker Simulator 1</a></p>
+
+<p>Written using Python 3.6.</p>
+
+<p>Bots, subnets, interesting hacking process, miners, and a lot of interesting things included in this game.</p>
+
+<p>Actual version: 0.1.2b</p>
+
+<h2 id="installation-android">Installation (Android)</h2>
+<ol>
+  <li>
+    <p>Download and install the <a href="https://termux.com/">Termux app</a>.</p>
+  </li>
+  <li>
+    <p>Don’t forget to give <a href="https://termux.com/">Termux</a> the “Data/SD/Memory access” rights (If your Android version &gt;= 5.0).</p>
+  </li>
+  <li>
+    <p>Launch <a href="https://termux.com/">Termux</a>.</p>
+  </li>
+  <li>
+    <p>Use <code class="highlighter-rouge">cd ~</code> command to go to Termux home directory.</p>
+  </li>
+  <li>
+    <p>Use <code class="highlighter-rouge">pkg install python</code> command to install Python (It’s needed to launch the game).</p>
+  </li>
+  <li>Install required modules by commands below:
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip install colorama
+pip install progressbar2
+pip install hashlib
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>Use <code class="highlighter-rouge">git clone https://github.com/dimankiev/dhackos.git</code> command to download the game</p>
+  </li>
+  <li>
+    <p>Use <code class="highlighter-rouge">cd dhackos</code> and <code class="highlighter-rouge">python dhackos.py</code> commands to start the game</p>
+  </li>
+  <li>
+    <p>Game will say you which modules is not installed if you doesn’t installed them.</p>
+  </li>
+  <li>Have a good time :D</li>
+</ol>
+
+<h2 id="installation-windows">Installation (Windows)</h2>
+<ol>
+  <li>
+    <p>Download and install (with administrator rights) the <a href="https://www.python.org/downloads/windows/">Python</a> (Python version must be &gt;= 3.5).</p>
+  </li>
+  <li>Install required modules by commands below:
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip install colorama
+pip install progressbar2
+pip install hashlib
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>Download the game archive <a href="https://github.com/dimankiev/dhackos/archive/master.zip">HERE</a> and unzip it to any folder (Example: <code class="highlighter-rouge">C:\Games\dHackOS</code>)</p>
+  </li>
+  <li>Install required modules by commands below:
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip install colorama
+pip install progressbar2
+pip install hashlib
+</code></pre></div>    </div>
+  </li>
+  <li>Open cmd and use the commands below to launch the game:
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cd {FOLDER_WHERE_YOU_EXTRACTED_THE_GAME_ARCHIVE}\dhackos
+python dhackos.py
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>Game will say you which modules is not installed if you doesn’t installed them.</p>
+  </li>
+  <li>Have a good time :D</li>
+</ol>
+
+<h2 id="getting-started">Getting started</h2>
+<ol>
+  <li>Create a dHackOS account at start of the game of load the previous game
+    <ul>
+      <li>Password can’t be less than 6 symbols</li>
+      <li>Please don’t forget the password, because it will be used to load saves</li>
+      <li>When you shutting down the dHackOS (game), you can save it</li>
+      <li>Don’t try to edit the save, because you can corrupt it</li>
+    </ul>
+  </li>
+  <li>Commands:
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> apps - list of installed apps + levels
+ help - list of console commands
+ shutdown - shutdown dHackOS
+ scan - scan subnet and search for vulnerable servers
+ balance - opens Bitcoin wallet where you can see your Bitcoin balance
+ load_list - shows you targets list
+ dhackosf - start the dHackOS exploitation framework
+ upgrade - launch dHackOS programs upgrade CLI
+ stats - shows your stats
+ change_ip_v - move from IPv4 (old IP version) to IPv6 (new IP version) (Can't be undone)
+ version - version of dHackOS
+ update_ip - replacing your ip with new one
+ miner - show last 10 mined blocks (short log)
+ rescan_subnet - rescans subnet to find new targets
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>Use scan to find first targets.</p>
+  </li>
+  <li>
+    <p>Then, select and IP and remember it.</p>
+  </li>
+  <li>
+    <p>Launch dHackOS Exploitation Framework by <code class="highlighter-rouge">dhackosf</code> command, then enter IP that you remembered</p>
+  </li>
+  <li>
+    <p>Don’t forget to upgrade your apps</p>
+  </li>
+  <li>You can see your statistics by <code class="highlighter-rouge">stats</code> command</li>
+</ol>
+
+<h2 id="requirements">Requirements</h2>
+
+<ol>
+  <li>
+    <p>Python version &gt;= 3.6</p>
+  </li>
+  <li>
+    <p>Install required modules by commands below:</p>
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip install colorama
+pip install progressbar2
+pip install hashlib
+</code></pre></div>    </div>
+  </li>
+</ol>
+
+<h2 id="links">Links</h2>
+<ul>
+  <li><a href="https://t.me/dimankiev">dimankiev (Telegram)</a></li>
+  <li><a href="http://aaa114-project.tk">aaa114-project</a></li>
+  <li><a href="mailto:dimankiev@gmail.com">dimankiev (E-Mail)</a></li>
+</ul>
+
+<h2 id="alpha-testers">Alpha-testers</h2>
+<ul>
+  <li><a href="https://t.me/taptrue">Taptrue(Telegram)</a></li>
+</ul>
+
+<h2 id="license">License</h2>
+<p>Hacker Simulator is GNU GPL v.3 Licensed<br />
+Copyright © 2018 dimankiev (http://aaa114-project.tk)</p>
+
+
+
+      <footer class="site-footer">
+        
+          <span class="site-footer-owner"><a href="https://github.com/dimankiev/dhackos">dhackos</a> is maintained by <a href="https://github.com/dimankiev">dimankiev</a>.</span>
+        
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a>.</span>
+      </footer>
+    </section>
+
+    
+  </body>
+</html>
