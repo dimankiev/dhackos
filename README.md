@@ -122,7 +122,7 @@ Alpha-testers
 
 License
 ---------
-Hacker Simulator is GNU GPL v.3 Licensed  
+Hacker Simulator is BSD-3-Clause Licensed  
 Copyright © 2018 dimankiev (http://aaa114-project.tk)
 
 [1]: https://github.com/dimankiev/dhackos
