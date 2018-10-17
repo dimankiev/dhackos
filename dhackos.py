@@ -16,21 +16,24 @@ except Exception as e:
     exit()
 sr = Style.RESET_ALL
 init()
-print(Fore.GREEN + "Welcome to dimankiev's Hack OS (dHackOS) !")
-print(Fore.YELLOW + "Loading...")
+print(Fore.GREEN + "Welcome to dHackOS Boot Interface !")
+print("Initializing dimankiev's Hack OS...")
+print(Fore.YELLOW + "Loading configuration...")
 companies = ["LG", "Samsung", "Lenovo", "Sony", "nVidia", "FBI", "CIA", "Valve", "Facebook", "Google",
              "Introversion Software", "Tesla Motors", "aaa114-project", "Microsoft", "SoloLearn Inc.", "Pharma",
              "Nestle", "Unknown", "Doogee", "Bitcoin", "Ethereum", "Intel", "AMD", "ASIC", "Telegram", "LinkedIn",
              "Instagram", "DEFCON", "SCP"]
 about = {
-    "dHackOS v.": "0.1.2b",
+    "dHackOS v.": "0.1.4b",
     "Author :": "dimankiev",
     "Idea :": "dimankiev",
     "Code :": "dimankiev",
     "Game mechanics :": "dimankiev",
     "Website :": "http://aaa114-project.tk",
     "E-Mail :": "dimankiev@gmail.com",
-    "Alpha testing :": "Taptrue (https://t.me/taptrue)"
+    "Alpha testing :": "Taptrue (https://t.me/taptrue)",
+    "Telegram group :": "https://t.me/dhackos",
+    "GitHub :": "https://github.com/dimankiev/dhackos"
 }
 cmds = {
     "apps": " - list of installed apps + levels",
@@ -200,21 +203,33 @@ def md5(string, salt):
 
 
 def mineBitcoins():
-    global minehistory, minelog, mined
-    minehistory = {}
-    minelog = 1
+    global minehistory, minelog, mined, miner_enroll
+    miner_enroll = 0
+    minehistory = {"1": "", "2": "", "3": "", "4": "", "5": "", "6": "", "7": "", "8": "", "9": "", "10": ""}
+    minelog = 11
+    firststart = 1
     while True:
         time.sleep(1)
-        mined = float(rnd.uniform(0.000001, (0.05 * apps["miner"])) * stats["miners"])
+        mined = float(rnd.uniform(0.000000001, (0.00005 * apps["miner"])) * stats["miners"])
         now = datetime.datetime.now()
         player["bitcoins"] = player["bitcoins"] + mined
         addInStats("btc_earned", mined, float)
-        minehistory[str(minelog)] = str(
-            "[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "] Mined: " + str(mined) + " BTC")
-        if minelog == 10:
-            minelog = 1
+        if miner_enroll == 1:
+            continue
+        elif miner_enroll == 0:
+            if minelog == 10 and firststart == 0:
+                minehistory = {"1": minehistory["2"], "2": minehistory["3"], "3": minehistory["4"], "4": minehistory["5"], "5": minehistory["6"], "6": minehistory["7"], "7": minehistory["8"], "8": minehistory["9"], "9": minehistory["10"], "10": ""}
+                minehistory[str(minelog)] = str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "] Mined: " + str('{0:.10f}'.format(mined)) + " BTC")
+            else:
+                if minelog == 1:
+                    minelog = 10
+                    firststart = 0
+                    minehistory[str(minelog)] = str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "] Mined: " + str('{0:.10f}'.format(mined)) + " BTC")
+                else:
+                    minelog -= 1
+                    minehistory[str(minelog)] = str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "] Mined: " + str('{0:.10f}'.format(mined)) + " BTC")
         else:
-            minelog = minelog + 1
+            continue
 
 
 def genTarget(k, ip):
@@ -233,15 +248,15 @@ def genTarget(k, ip):
 
 
 def genTargetsList():
-    global ips, targets, target, percent, gentargets
+    global ips, targets, target, scan_percent, gentargets
     gentargets = 1
     ips = []
     targets = {}
     i = 0
     for i in range(0, 10000):
-        percent = float(i) / 100
-        if percent == 99.99:
-            percent = 100.0
+        scan_percent = float(i) / 100
+        if scan_percent == 99.99:
+            scan_percent = 100.0
         ip = str(genIP())
         target = genTarget(i, ip)
         targets[ip] = target
@@ -277,7 +292,7 @@ def loadTargetList():
             else:
                 return target_list
         else:
-        	continue
+            continue
 
 def resetTargetBalance():
     while True:
@@ -351,14 +366,14 @@ def gameBot():
             target["bitcoins"] = 0
 
 
-print(Fore.GREEN + ".::LOADED::." + sr)
+print(Fore.GREEN + ".::SUCCESS::." + sr)
 target = {}
 target_list = []
 gentargets = 0
 while True:
-    sol = input("Please choose, load game from save or start new game ?(Save/New): ").lower()
+    sol = input("load save or start new session ? (Save/New): ").lower()
     if sol == "sav" or sol == "save" or sol == "sv" or sol == "sve":
-        print(".::SAVE IS LOADING::.")
+        print("Please wait..." + Fore.GREEN + "\n.::LOADING::.")
         loadGame()
         if success_load == 1:
             print(sr + Fore.GREEN + ".::SUCCESS::.")
@@ -456,8 +471,8 @@ while True:
         sub_gen.start()
         while True:
             time.sleep(1)
-            print("Scanning in progress... " + str(percent) + "%")
-            if percent == 100.0:
+            print("Scanning in progress... " + str(scan_percent) + "%")
+            if scan_percent == 100.0:
                 print(Fore.GREEN + "Done !")
                 break
         print(Fore.CYAN + str(len(ips)) + " servers in subnet" + sr)
@@ -577,21 +592,33 @@ while True:
         if devpass == "f4e7be3ed7ad0ee61fbb0d227fcc4153":
             print(Fore.GREEN + "Developer Mode Activated !")
             print(Fore.RED + "If you don't how to use dev mode, you're crazy or cheater !" + Fore.GREEN)
-            print(".::DATA INPUT MODE IS ACTIVATED::.")
-            print("player = " + str(player) + "\napps" + str(apps) + "\nstats" + str(stats))
-            for param in player:
-                vtype = type(player[param])
-                player[param] = vtype(input("player[" + str(param) + "] = "))
-                print(".::SUCCESS::.")
-            for param in apps:
-                vtype = type(apps[param])
-                apps[param] = vtype(input("apps[" + str(param) + "] = "))
-            for param in stats:
-                vtype = type(stats[param])
-                stats[param] = vtype(input("stats[" + str(param) + "] = "))
-            print(Fore.RED + ".::DATA INPUT MODE IS DEACTIVATED::." + sr)
+            while True:
+                dev_cmd = input("dHackOS dev > ")
+                if dev_cmd == "help":
+                    print("data_input\nset_btc\nexit")
+                elif dev_cmd == "data_input":
+                    print(".::DATA INPUT MODE IS ACTIVATED::.")
+                    print("player = " + str(player) + "\napps" + str(apps) + "\nstats" + str(stats))
+                    for param in player:
+                        vtype = type(player[param])
+                        player[param] = vtype(input("player[" + str(param) + "] = "))
+                        print(".::SUCCESS::.")
+                    for param in apps:
+                        vtype = type(apps[param])
+                        apps[param] = vtype(input("apps[" + str(param) + "] = "))
+                    for param in stats:
+                        vtype = type(stats[param])
+                        stats[param] = vtype(input("stats[" + str(param) + "] = "))
+                    print(Fore.RED + ".::DATA INPUT MODE IS DEACTIVATED::." + sr)
+                    player["password"] = md5(player["password"], "dhackos")
+                elif dev_cmd == "set_btc":
+                    player["bitcoins"] = float(input("Please, enter NEW player BTC balance: "))
+                elif dev_cmd == "exit":
+                    print(Fore.RED + "Exiting..." + sr)
+                    break
+                else:
+                    print(Fore.RED + "Unknown input !" + Fore.GREEN)
             player["dev"] = 1
-            player["password"] = md5(player["password"], "dhackos")
         else:
             print(Fore.RED + "Wrong dev password ! Don't try again later !" + sr)
     elif cmd == "change_ip_v":
@@ -607,7 +634,9 @@ while True:
         print(Fore.GREEN + "Your IP: " + Style.BRIGHT + str(player["ip"]) + sr)
     elif cmd == "miner":
         print(Fore.GREEN + "Last 10 enrollments from your miner" + sr)
+        miner_enroll = 1
         showVoc(minehistory, None, None, Fore.GREEN)
+        miner_enroll = 0
     elif cmd == "version":
         showVoc(about, None, None, Fore.GREEN)
     else:
