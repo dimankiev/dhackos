@@ -24,7 +24,7 @@ companies = ["LG", "Samsung", "Lenovo", "Sony", "nVidia", "FBI", "CIA", "Valve",
              "Nestle", "Unknown", "Doogee", "Bitcoin", "Ethereum", "Intel", "AMD", "ASIC", "Telegram", "LinkedIn",
              "Instagram", "DEFCON", "SCP"]
 about = {
-    "dHackOS v.": "0.1.4b",
+    "dHackOS v.": "0.1.5b",
     "Author :": "dimankiev",
     "Idea :": "dimankiev",
     "Code :": "dimankiev",
@@ -133,9 +133,12 @@ def loadGame():
 
 
 def saveGame():
-    save = open("save.bin", "w")
-    save.write("player = " + str(player) + "\n" + "apps = " + str(apps) + "\n" + "stats = " + str(stats) + "\n" + "minehistory = " + str(minehistory) + "\n" + "targets = " + str(targets) + "\n" + "ips = " + str(ips))
-    save.close()
+    try:
+        save = open("save.bin", "w")
+        save.write("player = " + str(player) + "\n" + "apps = " + str(apps) + "\n" + "stats = " + str(stats) + "\n" + "minehistory = " + str(minehistory) + "\n" + "targets = " + str(targets) + "\n" + "ips = " + str(ips))
+        save.close()
+    except PermissionError:
+        print("Save failed ! Please check your read/write permissions\n(If you a Linux or Android user, check chmod or try to launch this game as root)")
 
 
 def newGame():
@@ -205,7 +208,7 @@ def md5(string, salt):
 def mineBitcoins():
     global minehistory, minelog, mined, miner_enroll
     miner_enroll = 0
-    minehistory = {"1": "", "2": "", "3": "", "4": "", "5": "", "6": "", "7": "", "8": "", "9": "", "10": ""}
+    minehistory = {}
     minelog = 11
     firststart = 1
     while True:
@@ -216,7 +219,7 @@ def mineBitcoins():
         addInStats("btc_earned", mined, float)
         if miner_enroll == 1:
             continue
-        elif miner_enroll == 0:
+        elif miner_enroll == 0 and game_started == 1:
             if minelog == 10 and firststart == 0:
                 minehistory = {"1": minehistory["2"], "2": minehistory["3"], "3": minehistory["4"], "4": minehistory["5"], "5": minehistory["6"], "6": minehistory["7"], "7": minehistory["8"], "8": minehistory["9"], "9": minehistory["10"], "10": ""}
                 minehistory[str(minelog)] = str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "] Mined: " + str('{0:.10f}'.format(mined)) + " BTC")
@@ -348,6 +351,22 @@ def searchTargets(is_bot):
         return bot_target
 
 
+def initGame():
+    global game_started
+    if game_started == 0:
+        miner = threading.Thread(target=mineBitcoins)
+        miner.daemon = True
+        miner.start()
+        target_balance_reset = threading.Thread(target=resetTargetBalance)
+        target_balance_reset.daemon = True
+        target_balance_reset.start()
+        game_bot = threading.Thread(target=gameBot)
+        game_bot.daemon = True
+        game_bot.start()
+        game_started = 1
+
+
+
 def gameBot():
     while True:
         if gentargets == 0:
@@ -370,6 +389,7 @@ print(Fore.GREEN + ".::SUCCESS::." + sr)
 target = {}
 target_list = []
 gentargets = 0
+game_started = 0
 while True:
     sol = input("load save or start new session ? (Save/New): ").lower()
     if sol == "sav" or sol == "save" or sol == "sv" or sol == "sve":
@@ -389,16 +409,8 @@ while True:
     else:
         print(Fore.RED + "Unknown input ! Please, try again" + sr)
 sol = None
-miner = threading.Thread(target=mineBitcoins)
-miner.daemon = True
-miner.start()
-target_balance_reset = threading.Thread(target=resetTargetBalance)
-target_balance_reset.daemon = True
-target_balance_reset.start()
-game_bot = threading.Thread(target=gameBot)
-game_bot.daemon = True
-game_bot.start()
 while True:
+    initGame()
     if player["dev"] == 1:
         cmd = input(player["ip"] + "@" + player["username"] + ":/root/dev_mode# ").lower()
     else:
@@ -635,8 +647,13 @@ while True:
     elif cmd == "miner":
         print(Fore.GREEN + "Last 10 enrollments from your miner" + sr)
         miner_enroll = 1
-        showVoc(minehistory, None, None, Fore.GREEN)
-        miner_enroll = 0
+        try:
+            for i in range(1,11):
+                print(Fore.GREEN + Style.BRIGHT + str(i) + Style.NORMAL + minehistory[str(i)] + sr)
+            miner_enroll = 0
+        except:
+            print(Fore.YELLOW + "Please wait for 10 seconds, miner is connecting to the mining pool transaction history..." + sr)
+            miner_enroll = 0
     elif cmd == "version":
         showVoc(about, None, None, Fore.GREEN)
     else:
