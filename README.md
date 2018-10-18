@@ -6,7 +6,7 @@ Written using Python 3.6.
 
 Bots, subnets, interesting hacking process, miners, and a lot of interesting things included in this game.
 
-Actual version: 0.1.4b
+Actual version: 0.1.5b
 
 Installation (Android)
 -----------------------
@@ -64,7 +64,7 @@ Installation (Windows)
 
 Getting started
 ----------------
-1. Create a dHackOS account at start of the game of load the previous game
+1. Create a dHackOS account at start of the game or load the previous game
    - Password can't be less than 6 symbols
    - Please don't forget the password, because it will be used to load saves
    - When you shutting down the dHackOS (game), you can save it
