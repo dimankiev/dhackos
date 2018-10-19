@@ -50,7 +50,8 @@ cmds = {
     "version": " - version of dHackOS",
     "update_ip": " - replacing your ip with new one",
     "miner": " - show last 10 mined blocks (short log)",
-    "rescan_subnet": " - rescans subnet to find new targets"
+    "rescan_subnet": " - rescans subnet to find new targets",
+    "news": " - show latest cyber security news"
 }
 stats_desc = {
     "btc_earned": "Bitcoins earned: ",
