@@ -6,7 +6,7 @@ Written using Python 3.6.
 
 Bots, subnets, interesting hacking process, miners, and a lot of interesting things included in this game.
 
-Actual version: 0.1.5b
+Actual version: 0.1.7b
 
 Installation (Android)
 -----------------------
@@ -76,6 +76,7 @@ Getting started
     help - list of console commands
     shutdown - shutdown dHackOS
     scan - scan subnet and search for vulnerable servers
+    scan_target - scan an IP and gather information about target server
     balance - opens Bitcoin wallet where you can see your Bitcoin balance
     load_list - shows you targets list
     dhackosf - start the dHackOS exploitation framework
@@ -86,6 +87,7 @@ Getting started
     update_ip - replacing your ip with new one
     miner - show last 10 mined blocks (short log)
     rescan_subnet - rescans subnet to find new targets
+    news - show latest cyber security news
    ```
 
 3. Use scan to find first targets.
