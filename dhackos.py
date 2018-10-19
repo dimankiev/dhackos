@@ -24,7 +24,7 @@ companies = ["LG", "Samsung", "Lenovo", "Sony", "nVidia", "FBI", "CIA", "Valve",
              "Nestle", "Unknown", "Doogee", "Bitcoin", "Ethereum", "Intel", "AMD", "ASIC", "Telegram", "LinkedIn",
              "Instagram", "DEFCON", "SCP"]
 about = {
-    "dHackOS v.": "0.1.5b",
+    "dHackOS v.": "0.1.7b",
     "Author :": "dimankiev",
     "Idea :": "dimankiev",
     "Code :": "dimankiev",
@@ -40,6 +40,7 @@ cmds = {
     "help": " - list of console commands",
     "shutdown": " - shutdown dHackOS",
     "scan": " - scan subnet and search for vulnerable servers",
+    "scan_target": " - scan an IP and gather information about target server",
     "balance": " - opens Bitcoin wallet where you can see your Bitcoin balance",
     "load_list": " - shows you targets list",
     "dhackosf": " - start the dHackOS exploitation framework",
@@ -143,7 +144,8 @@ def saveGame():
 
 def newGame():
     while True:
-        global player, apps, stats, minehistory
+        global player, apps, stats, minehistory, news
+        news = {}
         player = {"bitcoins": 0.0, "ip": genIP(), "dev": 0, "ipv6": 0, "xp": 0}
         player["username"] = input("Please enter your username: ").lower()
         player["password"] = pwd.getpass("Please enter your password: ").lower()
@@ -203,36 +205,6 @@ def md5(string, salt):
     hash = str(string + salt)
     hash = hashlib.md5(hash.encode()).hexdigest()
     return hash
-
-
-def mineBitcoins():
-    global minehistory, minelog, mined, miner_enroll
-    miner_enroll = 0
-    minehistory = {}
-    minelog = 11
-    firststart = 1
-    while True:
-        time.sleep(1)
-        mined = float(rnd.uniform(0.000000001, (0.00005 * apps["miner"])) * stats["miners"])
-        now = datetime.datetime.now()
-        player["bitcoins"] = player["bitcoins"] + mined
-        addInStats("btc_earned", mined, float)
-        if miner_enroll == 1:
-            continue
-        elif miner_enroll == 0 and game_started == 1:
-            if minelog == 10 and firststart == 0:
-                minehistory = {"1": minehistory["2"], "2": minehistory["3"], "3": minehistory["4"], "4": minehistory["5"], "5": minehistory["6"], "6": minehistory["7"], "7": minehistory["8"], "8": minehistory["9"], "9": minehistory["10"], "10": ""}
-                minehistory[str(minelog)] = str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "] Mined: " + str('{0:.10f}'.format(mined)) + " BTC")
-            else:
-                if minelog == 1:
-                    minelog = 10
-                    firststart = 0
-                    minehistory[str(minelog)] = str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "] Mined: " + str('{0:.10f}'.format(mined)) + " BTC")
-                else:
-                    minelog -= 1
-                    minehistory[str(minelog)] = str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "] Mined: " + str('{0:.10f}'.format(mined)) + " BTC")
-        else:
-            continue
 
 
 def genTarget(k, ip):
@@ -327,7 +299,7 @@ def changeIPv(ipv):
         print(Fore.RED + ".::ABORTED::." + sr)
 
 def searchTargets(is_bot):
-    global target_list, bot_target_list, bot_target
+    global player_target_list, bot_target_list, bot_target
     if is_bot == 0:
         print(Fore.WHITE + Back.BLUE + Style.BRIGHT + "dHackOS Scanner v.0.5-r.4" + sr)
         addInStats("scans", 1, int)
@@ -366,8 +338,42 @@ def initGame():
         game_started = 1
 
 
+def mineBitcoins():
+    global minehistory, minelog, mined, miner_enroll
+    miner_enroll = 0
+    minehistory = {}
+    minelog = 11
+    firststart = 1
+    while True:
+        time.sleep(1)
+        mined = float(rnd.uniform(0.000000001, (0.00005 * apps["miner"])) * stats["miners"])
+        now = datetime.datetime.now()
+        player["bitcoins"] = player["bitcoins"] + mined
+        addInStats("btc_earned", mined, float)
+        if miner_enroll == 1:
+            continue
+        elif miner_enroll == 0 and game_started == 1:
+            if minelog == 10 and firststart == 0:
+                minehistory = {"1": minehistory["2"], "2": minehistory["3"], "3": minehistory["4"], "4": minehistory["5"], "5": minehistory["6"], "6": minehistory["7"], "7": minehistory["8"], "8": minehistory["9"], "9": minehistory["10"], "10": ""}
+                minehistory[str(minelog)] = str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "] Mined: " + str('{0:.10f}'.format(mined)) + " BTC")
+            else:
+                if minelog == 1:
+                    minelog = 10
+                    firststart = 0
+                    minehistory[str(minelog)] = str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "] Mined: " + str('{0:.10f}'.format(mined)) + " BTC")
+                else:
+                    minelog -= 1
+                    minehistory[str(minelog)] = str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "] Mined: " + str('{0:.10f}'.format(mined)) + " BTC")
+        else:
+            continue
+
 
 def gameBot():
+    global news, accident_n, current_news, news_show
+    news_show = 0
+    news = {}
+    firststart = 1
+    accident_n = 11
     while True:
         if gentargets == 0:
             time.sleep(1)
@@ -380,9 +386,39 @@ def gameBot():
                     else:
                         break
             bot['bitcoins'] += target['bitcoins']
+            stolen = target['bitcoins']
+            #print("\nStolen: " + str(stolen)) #debug info
+            now = datetime.datetime.now()
             #bot['firewall'] += rnd.randint(bot['firewall'],int(target['firewall'] + bot['firewall']))
             #target["firewall"] += rnd.randint(bot["firewall"],int(target["firewall"] + bot["firewall"]))
             target["bitcoins"] = 0
+            #print("\nNews show: " + str(news_show)) #debug_info
+            if news_show == 1:
+                continue
+            elif news_show == 0 and game_started == 1:
+                if accident_n == 10 and firststart == 0:
+                    news = {"1": news["2"], "2": news["3"], "3": news["4"], "4": news["5"], "5": news["6"], "6": news["7"], "7": news["8"], "8": news["9"], "9": news["10"], "10": {}}
+                    if stolen > 0.0:
+                        news[str(accident_n)] = { "time": str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "]"), "accident": str("Someone stolen " + str('{0:.10f}'.format(stolen)) + " BTC from " + str(target["company"]) + "'s corporate network PC")}
+                    else:
+                        news[str(accident_n)] = { "time": str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "]"), "accident": str("Someone hacked " + str(target["company"]) + "'s corporate network PC")}
+                else:
+                    if accident_n == 1:
+                        accident_n = 10
+                        firststart = 0
+                        if stolen > 0.0:
+                            news[str(accident_n)] = { "time": str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "]"), "accident": str("Someone stolen " + str('{0:.10f}'.format(stolen)) + " BTC from " + str(target["company"]) + "'s corporate network PC")}
+                        else:
+                            news[str(accident_n)] = { "time": str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "]"), "accident": str("Someone hacked " + str(target["company"]) + "'s corporate network PC")}
+                    else:
+                        accident_n -= 1
+                        if stolen > 0.0:
+                            news[str(accident_n)] = { "time": str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "]"), "accident": str("Someone stolen " + str('{0:.10f}'.format(stolen)) + " BTC from " + str(target["company"]) + "'s corporate network PC")}
+                        else:
+                            news[str(accident_n)] = { "time": str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "]"), "accident": str("Someone hacked " + str(target["company"]) + "'s corporate network PC")}
+                #print("accident_n: " + str(accident_n) + " " + str(news[str(accident_n)])) #debug_info
+            else:
+                continue
 
 
 print(Fore.GREEN + ".::SUCCESS::." + sr)
@@ -390,6 +426,7 @@ target = {}
 target_list = []
 gentargets = 0
 game_started = 0
+news_show = 0
 while True:
     sol = input("load save or start new session ? (Save/New): ").lower()
     if sol == "sav" or sol == "save" or sol == "sv" or sol == "sve":
@@ -489,10 +526,10 @@ while True:
                 break
         print(Fore.CYAN + str(len(ips)) + " servers in subnet" + sr)
     elif cmd == "load_list":
-        if target_list != []:
+        if player_target_list != []:
             print(Fore.GREEN + "IP list:" + Style.BRIGHT)
-            for i in range(0,11):
-                print(str(i) + ". " + target_list[int(i)])
+            for i in range(0,len(player_target_list)):
+                print(str(i) + ". " + player_target_list[int(i)])
             print(Style.NORMAL + "Please choose the IP, launch dHackOSf and enter the IP what you choosen" + sr)
         else:
             print(Fore.RED + "There is no targets in your list ! Type scan to find one." + sr)
@@ -654,8 +691,42 @@ while True:
         except:
             print(Fore.YELLOW + "Please wait for 10 seconds, miner is connecting to the mining pool transaction history..." + sr)
             miner_enroll = 0
+    elif cmd == "news":
+        print(Fore.GREEN + "Latest cyber security news:" + sr)
+        news_show = 1
+        try:
+            for i in range(1,11):
+                current_news = news[str(i)]
+                print(Fore.GREEN + Style.BRIGHT + current_news["time"] + Style.NORMAL + current_news["accident"] + sr)
+            news_show = 0
+        except Exception as e:
+            print(Fore.YELLOW + "Please wait for 10 seconds, news service is initializing..." + sr)
+            news_show = 0
+        news_show = 0
     elif cmd == "version":
         showVoc(about, None, None, Fore.GREEN)
+    elif cmd == "scan_target":
+        target = {}
+        while True:
+            if target == {}:
+                print(Fore.RED + Style.BRIGHT + "Tutorial:\nSelect an IP from your previous scan results\nType exit to stop the dHackOS Scanner !" + Fore.GREEN)
+                target_ip = str(input("Please enter the target IP: "))
+                if target_ip == "exit":
+                    print("Stopping the dHackOS Scanner..." + sr)
+                    time.sleep(1)
+                    break
+                else:
+                    try:
+                        target = targets[target_ip]
+                    except:
+                        print(Fore.RED + "Wrong IP entered !" + sr)
+                        break
+                print("Scanning process is started !\nPlease wait...")
+            else:
+                print(Fore.GREEN + "Scanning target...")
+                for i in progressbar.progressbar(range(100)): time.sleep(0.02)
+                showVoc(target, target_desc, None, Fore.GREEN)
+                break
     else:
         print(Fore.RED + "Unknown input. Please try again" + sr)
 print("disconnected...")
