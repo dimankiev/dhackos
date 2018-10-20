@@ -24,7 +24,7 @@ companies = ["LG", "Samsung", "Lenovo", "Sony", "nVidia", "FBI", "CIA", "Valve",
              "Nestle", "Unknown", "Doogee", "Bitcoin", "Ethereum", "Intel", "AMD", "ASIC", "Telegram", "LinkedIn",
              "Instagram", "DEFCON", "SCP"]
 about = {
-    "dHackOS v.": "0.1.7b",
+    "dHackOS v.": "0.1.8b",
     "Author :": "dimankiev",
     "Idea :": "dimankiev",
     "Code :": "dimankiev",
@@ -325,7 +325,8 @@ def searchTargets(is_bot):
 
 
 def initGame():
-    global game_started
+    global game_started, target, gentargets, news_show, player_target_list
+    game_started = 0
     if game_started == 0:
         miner = threading.Thread(target=mineBitcoins)
         miner.daemon = True
@@ -337,12 +338,17 @@ def initGame():
         game_bot.daemon = True
         game_bot.start()
         game_started = 1
+        target = {}
+        gentargets = 0
+        game_started = 1
+        news_show = 0
+        player_target_list = []
 
 
 def mineBitcoins():
     global minehistory, minelog, mined, miner_enroll
     miner_enroll = 0
-    minehistory = {}
+    minehistory = {"1": "", "2": "", "3": "", "4": "", "5": "", "6": "", "7": "", "8": "", "9": "", "10": ""}
     minelog = 11
     firststart = 1
     while True:
@@ -372,12 +378,12 @@ def mineBitcoins():
 def gameBot():
     global news, accident_n, current_news, news_show
     news_show = 0
-    news = {}
+    news = {"1": "", "2": "", "3": "", "4": "", "5": "", "6": "", "7": "", "8": "", "9": "", "10": ""}
     firststart = 1
     accident_n = 11
     while True:
         if gentargets == 0:
-            time.sleep(1)
+            time.sleep(5)
             bot = searchTargets(1)
             while True:
                 if gentargets == 0:
@@ -423,11 +429,6 @@ def gameBot():
 
 
 print(Fore.GREEN + ".::SUCCESS::." + sr)
-target = {}
-target_list = []
-gentargets = 0
-game_started = 0
-news_show = 0
 while True:
     sol = input("load save or start new session ? (Save/New): ").lower()
     if sol == "sav" or sol == "save" or sol == "sv" or sol == "sve":
@@ -436,6 +437,7 @@ while True:
         if success_load == 1:
             print(sr + Fore.GREEN + ".::SUCCESS::.")
             print("Your IP: " + Style.BRIGHT + player["ip"] + sr)
+            initGame()
             break
         else:
             continue
@@ -443,12 +445,12 @@ while True:
         newGame()
         print(sr + Fore.GREEN + ".::SUCCESS::.")
         print("Your IP: " + Style.BRIGHT + str(player["ip"]) + sr)
+        initGame()
         break
     else:
         print(Fore.RED + "Unknown input ! Please, try again" + sr)
 sol = None
 while True:
-    initGame()
     if player["dev"] == 1:
         cmd = input(player["ip"] + "@" + player["username"] + ":/root/dev_mode# ").lower()
     else:
@@ -474,6 +476,12 @@ while True:
         while True:
             print("Please choose the program which you want to upgrade or type exit\nPrint all to upgrade all programs simultaneously")
             program = input("What we're going to upgrade today ? ").lower()
+            try:
+                if program != "all" and program != "exit":
+                    apps[program] = ((apps[program] + 1) - 1)
+            except Exception as e:
+                print(Fore.RED + "Program not found or unknown input !\n" + str(e) + Fore.GREEN)
+                continue
             if program != "exit":
                 while True:
                     try:
@@ -505,7 +513,7 @@ while True:
                             print(Fore.RED + "Upgrade aborted !" + Fore.GREEN)
                             break
                     except Exception as e:
-                        print(Fore.RED + "Program not found or unknown input !\n" + Fore.GREEN + str(e))
+                        print(Fore.RED + "Program not found or unknown input !\n" + str(e) + Fore.GREEN)
                         break
             elif program == "exit":
                 print("Stopping... " + sr)
@@ -701,7 +709,7 @@ while True:
                 print(Fore.GREEN + Style.BRIGHT + current_news["time"] + Style.NORMAL + current_news["accident"] + sr)
             news_show = 0
         except Exception as e:
-            print(Fore.YELLOW + "Please wait for 10 seconds, news service is initializing..." + sr)
+            print(Fore.YELLOW + "Please wait for " + str(int(accident_n * 5)) + " seconds, news service is initializing..." + sr)
             news_show = 0
         news_show = 0
     elif cmd == "version":
