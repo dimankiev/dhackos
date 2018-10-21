@@ -6,7 +6,7 @@ Written using Python 3.6.
 
 Bots, subnets, interesting hacking process, miners, and a lot of interesting things included in this game.
 
-Actual version: 0.1.8b
+Actual version: 0.1.9b
 
 Installation (Android)
 -----------------------
@@ -88,6 +88,7 @@ Getting started
     miner - show last 10 mined blocks (short log)
     rescan_subnet - rescans subnet to find new targets
     news - show latest cyber security news
+    debug_info - shows you debug information
    ```
 
 3. Use scan to find first targets.
