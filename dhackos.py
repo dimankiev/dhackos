@@ -1,7 +1,8 @@
 try:
     import getpass as pwd
     import random as rnd
-    import threading, progressbar, time, imp, hashlib, base64, string, datetime
+    import threading, progressbar, time, imp, hashlib, base64, string, datetime, platform
+    from psutil import *
     from os import stat, remove
     from colorama import Fore, Back, Style, init
     from math import pi
@@ -16,6 +17,7 @@ except Exception as e:
     exit()
 sr = Style.RESET_ALL
 init()
+version = "0.1.9b"
 print(Fore.GREEN + "Welcome to dHackOS Boot Interface !")
 print("Initializing dimankiev's Hack OS...")
 print(Fore.YELLOW + "Loading configuration...")
@@ -24,16 +26,22 @@ companies = ["LG", "Samsung", "Lenovo", "Sony", "nVidia", "FBI", "CIA", "Valve",
              "Nestle", "Unknown", "Doogee", "Bitcoin", "Ethereum", "Intel", "AMD", "ASIC", "Telegram", "LinkedIn",
              "Instagram", "DEFCON", "SCP"]
 about = {
-    "dHackOS v.": "0.1.8b",
+    "dHackOS v.": version,
     "Author :": "dimankiev",
     "Idea :": "dimankiev",
     "Code :": "dimankiev",
     "Game mechanics :": "dimankiev",
     "Website :": "http://aaa114-project.tk",
     "E-Mail :": "dimankiev@gmail.com",
-    "Alpha testing :": "Taptrue (https://t.me/taptrue)",
+    "Secret Alpha testing :": "Taptrue (https://t.me/taptrue)",
+    "Pre-release beta testing :": "LINKI (https://t.me/@LINKICoder)",
     "Telegram group :": "https://t.me/dhackos",
     "GitHub :": "https://github.com/dimankiev/dhackos"
+}
+debug_info = {
+    "Version :": str("\n  dHackOS v." + version),
+    "OS :": str("\n  " + platform.system() + " " + platform.release()),
+    "RAM :": str("\n  Total : " + '{0:.2f}'.format(float(virtual_memory()[0] / 1073741824)) + " GB\n  Used : " + '{0:.2f}'.format(float(virtual_memory()[3] / 1073741824)) + " GB\n  Free : " + '{0:.2f}'.format(float(virtual_memory()[1] / 1073741824)) + " GB")
 }
 cmds = {
     "apps": " - list of installed apps + levels",
@@ -51,7 +59,8 @@ cmds = {
     "update_ip": " - replacing your ip with new one",
     "miner": " - show last 10 mined blocks (short log)",
     "rescan_subnet": " - rescans subnet to find new targets",
-    "news": " - show latest cyber security news"
+    "news": " - show latest cyber security news",
+    "debug_info": " - shows you debug information"
 }
 stats_desc = {
     "btc_earned": "Bitcoins earned: ",
@@ -62,7 +71,8 @@ stats_desc = {
     "level": "Your level: ",
     "symbols": "Symbols typed (when calling commands): ",
     "launches": "How many times dHackOS launched: ",
-    "miners": "Miners injected into target servers: "
+    "miners": "Miners injected into target servers: ",
+    "proxy": "Servers in your proxy chain: "
 }
 tcmds = {
     "Employee OS v.8.1 Pro - ": "Commands List: ",
@@ -70,11 +80,12 @@ tcmds = {
     "developer_mode": " - not accessible for you command (don't use it)",
     "exit": " - exit from console",
     "inject": " - [dHackOSf] #INJECT_MINER (dhackosf injected command)",
+    "proxy": " - [dHackOSf] #INJECT_PROXY (dhackosf injected command)",
     "Your apps for work": " - are available on your desktop !"
 }
 target_desc = {
     "ip": "IP address:", "firewall": "Firewall:", "bitcoins": "Bitcoin balance:", "company": "Company:",
-    "port": "Port:", "service": "Service:", "k": "Server ID: ", "miner_injected": "Miner injected (1 - Yes|0 - No): ", "dev": "Is agent: ", "xp": "XP: ", "ipv6": "Encrypted: ", "password": "dHackNET ID: "
+    "port": "Port:", "service": "Service:", "k": "Server ID: ", "miner_injected": "Miner injected (1 - Yes|0 - No): ", "dev": "Is agent: ", "xp": "XP: ", "ipv6": "Encrypted: ", "password": "dHackNET ID: ", "proxy": "In proxy chain: "
 }
 
 
@@ -112,11 +123,11 @@ def getVarFromFile(filename):
         success_sload = 0
 
 
-def loadGame():
+def loadGame(username):
     global player, apps, stats, success_load, minehistory, targets, ips
     success_load = 0
     try:
-        getVarFromFile("save.bin")
+        getVarFromFile(str(username) + ".bin")
         player = data.player
         apps = data.apps
         stats = data.stats
@@ -134,9 +145,9 @@ def loadGame():
         print(Fore.RED + "Save is missing or corrupted !\n" + sr)
 
 
-def saveGame():
+def saveGame(username):
     try:
-        save = open("save.bin", "w")
+        save = open(str(username) + ".bin", "w")
         save.write("player = " + str(player) + "\n" + "apps = " + str(apps) + "\n" + "stats = " + str(stats) + "\n" + "minehistory = " + str(minehistory) + "\n" + "targets = " + str(targets) + "\n" + "ips = " + str(ips))
         save.close()
     except PermissionError:
@@ -147,9 +158,9 @@ def newGame():
     while True:
         global player, apps, stats, minehistory, news
         news = {}
-        player = {"bitcoins": 0.0, "ip": genIP(), "dev": 0, "ipv6": 0, "xp": 0}
-        player["username"] = input("Please enter your username: ").lower()
-        player["password"] = pwd.getpass("Please enter your password: ").lower()
+        player = {"bitcoins": 0.0, "ip": genIP(), "dev": 0, "ipv6": 0, "xp": 0, "sentence": 0}
+        player["username"] = str(input("Please enter your username: ").lower())
+        player["password"] = str(pwd.getpass("Please enter your password: ").lower())
         if len(player["password"]) < 6:
             print(
                 Fore.RED + "Password can't be less than 6 symbols, please choose another password\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" + sr)
@@ -160,7 +171,7 @@ def newGame():
             player["password"] = md5(player["password"], "dhackos")
             apps = {"scanner": 1, "spam": 1, "bruteforce": 1, "sdk": 1, "ipspoofing": 1, "dechyper": 1, "miner": 1}
             stats = {"btc_earned": 0.0, "shacked": 0, "xp": 0, "rep": 0, "scans": 0, "level": 1, "symbols": 0,
-                     "launches": 0, "miners": 1}
+                     "launches": 0, "miners": 1, "proxy": 0}
             addInStats("launches", 1, int)
             genTargetsList()
             break
@@ -219,7 +230,7 @@ def genTarget(k, ip):
               "bitcoins": rnd.uniform((apps["bruteforce"] + apps["sdk"] + apps["ipspoofing"] + apps["dechyper"]) // 4,
                                       pi * float(target["firewall"]) + float(k)),
               "company": companies[rnd.randint(0, int(len(companies) - 1))], "port": rnd.randint(1, 65535), "service": "OpenSSH",
-              "firewall": target["firewall"], "k": k, "miner_injected": 0}
+              "firewall": target["firewall"], "k": k, "miner_injected": 0, "proxy": 0}
     return target;
 
 
@@ -240,6 +251,18 @@ def genTargetsList():
     gentargets = 0
     target = {}
 
+
+def traceStart():
+    global tracing, connection
+    tracing = stats["proxy"] * 3
+    if tracing <= 13:
+        tracing = 13
+    while True:
+        if connection == 1 and tracing != 0:
+            time.sleep(1)
+            tracing -= 1
+        else:
+            break
 
 def loadTargetList():
     t_num = 0
@@ -325,24 +348,26 @@ def searchTargets(is_bot):
 
 
 def initGame():
-    global game_started, target, gentargets, news_show, player_target_list
+    global game_started, target, gentargets, news_show, player_target_list, miner, tbr, game_bot, tracing
     game_started = 0
     if game_started == 0:
-        miner = threading.Thread(target=mineBitcoins)
-        miner.daemon = True
-        miner.start()
-        target_balance_reset = threading.Thread(target=resetTargetBalance)
-        target_balance_reset.daemon = True
-        target_balance_reset.start()
-        game_bot = threading.Thread(target=gameBot)
-        game_bot.daemon = True
-        game_bot.start()
         game_started = 1
         target = {}
         gentargets = 0
         game_started = 1
         news_show = 0
+        tracing = 0
+        connection = 0
         player_target_list = []
+        miner = threading.Thread(target=mineBitcoins)
+        miner.daemon = True
+        miner.start()
+        tbr = threading.Thread(target=resetTargetBalance) #target balance reset
+        tbr.daemon = True
+        tbr.start()
+        game_bot = threading.Thread(target=gameBot)
+        game_bot.daemon = True
+        game_bot.start()
 
 
 def mineBitcoins():
@@ -399,7 +424,7 @@ def gameBot():
             #bot['firewall'] += rnd.randint(bot['firewall'],int(target['firewall'] + bot['firewall']))
             #target["firewall"] += rnd.randint(bot["firewall"],int(target["firewall"] + bot["firewall"]))
             target["bitcoins"] = 0
-            #print("\nNews show: " + str(news_show)) #debug_info
+            #print("\nNews show: " + str(news_show)) #debug_info 
             if news_show == 1:
                 continue
             elif news_show == 0 and game_started == 1:
@@ -432,8 +457,10 @@ print(Fore.GREEN + ".::SUCCESS::." + sr)
 while True:
     sol = input("load save or start new session ? (Save/New): ").lower()
     if sol == "sav" or sol == "save" or sol == "sv" or sol == "sve":
+        print(Fore.GREEN + "[dHackOS LOGIN]" + sr)
+        username = str(input("Please enter your username: ").lower())
         print("Please wait..." + Fore.GREEN + "\n.::LOADING::.")
-        loadGame()
+        loadGame(username)
         if success_load == 1:
             print(sr + Fore.GREEN + ".::SUCCESS::.")
             print("Your IP: " + Style.BRIGHT + player["ip"] + sr)
@@ -451,10 +478,24 @@ while True:
         print(Fore.RED + "Unknown input ! Please, try again" + sr)
 sol = None
 while True:
-    if player["dev"] == 1:
-        cmd = input(player["ip"] + "@" + player["username"] + ":/root/dev_mode# ").lower()
+    if player["sentence"] == 3:
+        player["sentence"] = rnd.randint((player["sentence"] + 1),10)
+        print(Fore.RED + "You has been sentenced for " + str(player["sentence"]) + " years" + sr)
+        showVoc(stats, stats_desc, None, Fore.GREEN)
+        print(Fore.RED + "[GAME OVER]" + sr)
+        saveGame(str(player["username"]))
+        break
+    elif player["sentence"] > 3:
+        print(Fore.RED + "You has been sentenced for " + str(player["sentence"]) + " years" + sr)
+        showVoc(stats, stats_desc, None, Fore.GREEN)
+        print(Fore.RED + "[GAME OVER]" + sr)
+        saveGame(str(player["username"]))
+        break
     else:
-        cmd = input(player["ip"] + "@" + player["username"] + ":~# ").lower()
+        if player["dev"] == 1:
+            cmd = input(player["ip"] + "@" + player["username"] + ":/root/dev_mode# ").lower()
+        else:
+            cmd = input(player["ip"] + "@" + player["username"] + ":~# ").lower()
     levelCheck()
     addInStats("symbols", len(cmd), int)
     if cmd == "help":
@@ -485,7 +526,7 @@ while True:
             if program != "exit":
                 while True:
                     try:
-                        levels = int(input("How many levels do you want to upgrade (1-∞): "))
+                        levels = int(input("How many levels do you want to upgrade (1-∞): ")).lower()
                         if levels <= 0:
                             print(Fore.RED + "This value can't be zero or be less than zero" + Fore.GREEN)
                             break
@@ -496,7 +537,7 @@ while True:
                         else:
                             cost = float(pi * (apps[program] + levels))
                         print("Upgrade of " + str(program) + " will cost you " + str(cost) + " BTC.")
-                        if input("Upgrade (Y/N): ") == "Y":
+                        if input("Upgrade (Y/N): ").lower() == "y":
                             if player["bitcoins"] >= cost:
                                 player["bitcoins"] = float(float(player["bitcoins"]) - float(cost))
                                 if program == "all":
@@ -548,7 +589,7 @@ while True:
         while True:
             if target == {}:
                 print(Fore.RED + Style.BRIGHT + "Tutorial:\nSelect an IP from your previous scan results\nType exit to stop the dHackOSf !" + Fore.GREEN)
-                target_ip = str(input("Please enter the target IP: "))
+                target_ip = str(input("Please enter the target IP: ").lower())
                 if target_ip == "exit":
                     print("Stopping the dHackOSf..." + sr)
                     time.sleep(1)
@@ -584,10 +625,24 @@ while True:
                     xp = rnd.randint(0, 200)
                     addInStats("xp", xp, int)
                     player["xp"] = player["xp"] + xp
+                    connection = 1
+                    trace = threading.Thread(target=traceStart) #target balance reset
+                    trace.daemon = True
+                    trace.start()
+                    print(Fore.YELLOW + "You have " + str(tracing) + "sec before local admin trace you ! (Connection will be lost and BTCs seized by FBI)" + Fore.GREEN)
                     while True:
                         addInStats("shacked", 1, int)
                         tcmd = input(target["ip"] + "@root:/# ").lower()
-                        if tcmd == "help":
+                        if tracing == 0 or tracing <= 1:
+                            print(Fore.RED + "Connection was refused by local administrator...\nAttempting to revive remote session...")
+                            time.sleep(1)
+                            player["bitcoins"] = 0
+                            player["bitcoins"] = 0
+                            player["sentence"] += 1
+                            connection = 0
+                            print("[dHackOSf] ERROR. FIREWALL IS BLOCKING SESSION !" + Fore.YELLOW + "\n[dHackOS Corp] Your BTCs was seized by the FBI and injected miners deleted.\nYou will be sentenced after 3 FBI warnings.\nYou have " + str(player["sentence"]) + " warnings. Be careful." + sr)
+                            break
+                        elif tcmd == "help":
                             print(Fore.RED + "-==CONSOLE USING IS NOT RECOMMENDED FOR EMPLOYEE==-" + Fore.GREEN + Style.BRIGHT)
                             showVoc(tcmds, None, None, Fore.GREEN)
                             print(Fore.RED + Style.BRIGHT + "-==CONSOLE USING IS NOT RECOMMENDED FOR EMPLOYEE==-" + Fore.GREEN + Style.BRIGHT)
@@ -619,7 +674,7 @@ while True:
                             print("[dHackOSf] CONNECTION FAILURE !\n[dHackOSf] REMOTE CONTROL TROJAN DELETED LOGS AND SELF-DELETED" + sr)
                             break
                         elif tcmd == "inject":
-                            print(Fore.RED + "dHackOSf miner injector v.0.1-r1")
+                            print(Fore.RED + "dHackOSf miner injector v.0.1-r3")
                             if target["miner_injected"] == 0:
                                 for i in progressbar.progressbar(range(100)): time.sleep(0.04)
                                 stats["miners"] = stats["miners"] + 1
@@ -627,6 +682,15 @@ while True:
                                 target["miner_injected"] = 1
                             else:
                                 print(Fore.RED + "Miner has been already injected into kernel !" + Fore.GREEN)
+                        elif tcmd == "proxy":
+                            print(Fore.CYAN + "dHackOSf proxy init v.0.1.9-r1")
+                            if target["proxy"] == 0:
+                                for i in progressbar.progressbar(range(100)): time.sleep(0.02)
+                                stats["proxy"] = stats["proxy"] + 1
+                                print(Fore.GREEN + "Proxy initialized !")
+                                target["proxy"] = 1
+                            else:
+                                print(Fore.RED + "Proxy has been already initialized on this server !" + Fore.GREEN)
                         else:
                             print(Fore.RED + "Unknown input !" + Fore.GREEN)
                 else:
@@ -639,7 +703,7 @@ while True:
         sol = input("Save progress ?(Yes/No): ").lower()
         if sol == "yes" or sol == "ys" or sol == "y":
             print(Fore.RED + "Stopping all processes...\nShutting down...")
-            saveGame()
+            saveGame(str(player["username"]))
             print(Fore.GREEN + "Bye-Bye :)" + sr)
         else:
             print(Fore.RED + "Stopping all processes...\nShutting down...\n" + Fore.GREEN + "Bye-Bye :)" + sr)
@@ -651,9 +715,9 @@ while True:
             print(Fore.GREEN + "Developer Mode Activated !")
             print(Fore.RED + "If you don't how to use dev mode, you're crazy or cheater !" + Fore.GREEN)
             while True:
-                dev_cmd = input("dHackOS dev > ")
+                dev_cmd = input("dHackOS dev > ").lower()
                 if dev_cmd == "help":
-                    print("data_input\nset_btc\nexit")
+                    print("data_input\nset_btc\nexit\nsentenceme")
                 elif dev_cmd == "data_input":
                     print(".::DATA INPUT MODE IS ACTIVATED::.")
                     print("player = " + str(player) + "\napps" + str(apps) + "\nstats" + str(stats))
@@ -671,6 +735,13 @@ while True:
                     player["password"] = md5(player["password"], "dhackos")
                 elif dev_cmd == "set_btc":
                     player["bitcoins"] = float(input("Please, enter NEW player BTC balance: "))
+                elif dev_cmd == "sentenceme":
+                    sentencesure = input("Are you sure ?(Yes, I am sure what will be after this action./No): ")
+                    if sentencesure == "Yes, I am sure what will be after this action.":
+                        player["sentenceme"] = 3
+                        print(Fore.RED + "[DONE]" + Fore.GREEN)
+                    else:
+                        print(Fore.RED + "[ABORTED]" + Fore.GREEN)
                 elif dev_cmd == "exit":
                     print(Fore.RED + "Exiting..." + sr)
                     break
@@ -714,6 +785,8 @@ while True:
         news_show = 0
     elif cmd == "version":
         showVoc(about, None, None, Fore.GREEN)
+    elif cmd == "debug_info":
+        showVoc(debug_info, None, None, Fore.MAGENTA)
     elif cmd == "scan_target":
         target = {}
         while True:
