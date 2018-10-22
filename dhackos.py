@@ -526,7 +526,7 @@ while True:
             if program != "exit":
                 while True:
                     try:
-                        levels = int(input("How many levels do you want to upgrade (1-∞): ")).lower()
+                        levels = int(input("How many levels do you want to upgrade (1-∞): "))
                         if levels <= 0:
                             print(Fore.RED + "This value can't be zero or be less than zero" + Fore.GREEN)
                             break
