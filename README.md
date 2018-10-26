@@ -6,7 +6,7 @@ Written using Python 3.6.
 
 Bots, subnets, interesting hacking process, miners, and a lot of interesting things included in this game.
 
-Actual version: 0.1.9b
+Actual version: 0.2.0b
 
 Installation (Android)
 -----------------------
@@ -22,6 +22,9 @@ Installation (Android)
 
 6. Install required modules by commands below:
    ```
+   apt-get install python-dev
+   pip install psutil
+   pip install platform
    pip install colorama
    pip install progressbar2
    pip install hashlib
@@ -40,18 +43,15 @@ Installation (Windows)
 
 2. Install required modules by commands below:
    ```
+   pip install psutil
+   pip install platform
    pip install colorama
    pip install progressbar2
    pip install hashlib
    ```
 3. Download the game archive [HERE][4] and unzip it to any folder (Example: `C:\Games\dHackOS`)
 
-4. Install required modules by commands below:
-   ```
-   pip install colorama
-   pip install progressbar2
-   pip install hashlib
-   ```
+4. Check that you are administrator of your PC or move the game into your user account desktop.
 
 5. Open cmd and use the commands below to launch the game:
    ```
@@ -108,6 +108,8 @@ Requirements
 
 2. Install required modules by commands below:
    ```
+   pip install psutil
+   pip install platform
    pip install colorama
    pip install progressbar2
    pip install hashlib
@@ -116,6 +118,7 @@ Requirements
 Links
 ----------
 - [dimankiev (Telegram)](https://t.me/dimankiev)
+- [dhackos (Telegram)](https://t.me/dhackos)
 - [aaa114-project](http://aaa114-project.tk)
 - [dimankiev (E-Mail)](mailto:dimankiev@gmail.com)
 
