@@ -22,7 +22,7 @@ Installation (Android)
 
 6. Install required modules by commands below:
    ```
-   apt-get install python-dev
+   apt-get install python-dev clang libcrypt-dev
    pip install psutil
    pip install platform
    pip install colorama
