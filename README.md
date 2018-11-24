@@ -33,7 +33,7 @@ Installation (Android)
 
 8. Use `cd dhackos` and `python dhackos.py` commands to start the game
 
-9. Game will say you which modules is not installed if you doesn't installed them.
+9. Game will tell you which modules are not installed if you didn't installed them.
 
 10. Have a good time :D
 
@@ -58,7 +58,7 @@ Installation (Windows)
    cd {FOLDER_WHERE_YOU_EXTRACTED_THE_GAME_ARCHIVE}\dhackos
    python dhackos.py
    ```
-6. Game will say you which modules is not installed if you doesn't installed them.
+6. Game will tell you which modules are not installed if you didn't installed them.
 
 7. Have a good time :D
 
