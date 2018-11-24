@@ -17,7 +17,7 @@ except Exception as e:
     exit()
 sr = Style.RESET_ALL
 init()
-version = "0.2.1b"
+version = "0.2.2b"
 print(Fore.GREEN + "Welcome to dHackOS Boot Interface !")
 print("Initializing dimankiev's Hack OS...")
 print(Fore.YELLOW + "Loading configuration...")
@@ -60,7 +60,9 @@ cmds = {
     "miner": " - show last 10 mined blocks (short log)",
     "rescan_subnet": " - rescans subnet to find new targets",
     "news": " - show latest cyber security news",
-    "debug_info": " - shows you debug information"
+    "debug_info": " - shows you debug information",
+    "miner_info": " - shows you your miner components",
+    "buy_miner": " - buy one more miner"
 }
 dhackosf_cmds = {
     "help": " - dhackosf cmd list",
@@ -74,7 +76,7 @@ dhackosf_cmds = {
     "exit": " - exit from dhackosf"
 }
 stats_desc = {
-    "btc_earned": "ethereums earned: ",
+    "btc_earned": "Ethereums earned: ",
     "shacked": "Servers hacked: ",
     "xp": "Experience earned: ",
     "rep": "Reputation earned: ",
@@ -83,7 +85,56 @@ stats_desc = {
     "symbols": "Symbols typed (when calling commands): ",
     "launches": "How many times dHackOS launched: ",
     "miners": "Miners injected into target servers: ",
-    "proxy": "Servers in your proxy chain: "
+    "proxy": "Servers in your proxy chain: ",
+    "ownminers": "Your own miners: "
+}
+miner_desc = {
+    "cpu": "CPU:",
+    "ram": "RAM:",
+    "gpu": "GPU:",
+    "software": "Miner v."
+}
+miner_components = {
+    "cpu1": "Intel Pentium IV",
+    "cpu2": "Intel Pentium Gold G5500",
+    "cpu3": "Intel Core 2 Duo E6600",
+    "cpu4": "Intel Core i3-2100",
+    "cpu5": "Intel Core i3-2130",
+    "cpu6": "Intel Core i5-2500K",
+    "cpu7": "Intel Core i7-8705G",
+    "cpu8": "Intel Core i7-9700K",
+    "cpu9": "Intel Core i9-9900K",
+    "cpu10": "Intel Xeon Platinum 8180",
+    "gpu1": "nVidia Quadro FX 330",
+    "gpu2": "nVidia Quadro FX 1700",
+    "gpu3": "nVidia Quadro FX 5800",
+    "gpu4": "nVidia GTX 480",
+    "gpu5": "nVidia GTX 660 Ti",
+    "gpu6": "nVidia GTX 780 Ti",
+    "gpu7": "nVidia GTX 950",
+    "gpu8": "nVidia GTX 980 Ti",
+    "gpu9": "nVidia GTX 1080 Ti",
+    "gpu10": "nVidia RTX 2080 Ti",
+    "ram1": "Avant 1024 Mb",
+    "ram2": "Avant 2GB",
+    "ram3": "Kingston DDR4 4GB",
+    "ram4": "Kingston DDR4 8GB",
+    "ram5": "Corsair DDR4 8GB 2.4Ghz",
+    "ram6": "Corsair DDR4 2x8GB",
+    "ram7": "Corsair DDR4 16GB",
+    "ram8": "Corsair 2x16GB",
+    "ram9": "Corsair 32 GB",
+    "ram10": "Samsung DDR4 128GB",
+    "software1": "1.1",
+    "software2": "1.2",
+    "software3": "1.3",
+    "software4": "2.0",
+    "software5": "2.0.5",
+    "software6": "2.1.2",
+    "software7": "3.0.1",
+    "software8": "3.2",
+    "software9": "3.5",
+    "software10": "4.0b"
 }
 tcmds = {
     "Employee OS v.8.1 Pro - ": "Commands List: ",
@@ -135,7 +186,7 @@ def getVarFromFile(filename):
 
 
 def loadGame(username):
-    global player, apps, stats, success_load, minehistory, targets, ips
+    global player, apps, stats, success_load, minehistory, targets, ips, miner
     success_load = 0
     try:
         getVarFromFile(str(username) + ".bin")
@@ -145,6 +196,7 @@ def loadGame(username):
         minehistory = data.minehistory
         targets = data.targets
         ips = data.ips
+        miner = data.miner
         print(Fore.GREEN + Style.BRIGHT + "Welcome " + player["username"] + "!" + sr)
         if md5(pwd.getpass("Please enter your password: "), "dhackos") != player["password"]:
             print(Fore.RED + "The password is wrong !\n" + sr)
@@ -159,7 +211,7 @@ def loadGame(username):
 def saveGame(username):
     try:
         save = open(str(username) + ".bin", "w")
-        save.write("player = " + str(player) + "\n" + "apps = " + str(apps) + "\n" + "stats = " + str(stats) + "\n" + "minehistory = " + str(minehistory) + "\n" + "targets = " + str(targets) + "\n" + "ips = " + str(ips))
+        save.write("player = " + str(player) + "\n" + "apps = " + str(apps) + "\n" + "stats = " + str(stats) + "\n" + "minehistory = " + str(minehistory) + "\n" + "targets = " + str(targets) + "\n" + "ips = " + str(ips) + "\n" + "miner = " + str(miner))
         save.close()
     except PermissionError:
         print("Save failed ! Please check your read/write permissions\n(If you a Linux or Android user, check chmod or try to launch this game as root)")
@@ -167,7 +219,7 @@ def saveGame(username):
 
 def newGame():
     while True:
-        global player, apps, stats, minehistory, news
+        global player, apps, stats, minehistory, news, miner
         news = {}
         player = {"ethereums": 0.0, "ip": genIP(), "dev": 0, "ipv6": 0, "xp": 0, "sentence": 0}
         player["username"] = str(input("Please enter your username: ").lower())
@@ -180,9 +232,10 @@ def newGame():
             print(Fore.RED + "Passwords do not match !\nPlease try again\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" + sr)
         else:
             player["password"] = md5(player["password"], "dhackos")
-            apps = {"scanner": 1, "spam": 1, "bruteforce": 1, "sdk": 1, "ipspoofing": 1, "dechyper": 1, "miner": 1}
+            apps = {"scanner": 1, "spam": 1, "bruteforce": 1, "sdk": 1, "ipspoofing": 1, "dechyper": 1}
             stats = {"btc_earned": 0.0, "shacked": 0, "xp": 0, "rep": 0, "scans": 0, "level": 1, "symbols": 0,
-                     "launches": 0, "miners": 1, "proxy": 0}
+                     "launches": 0, "miners": 1, "ownminers": 1, "proxy": 0}
+            miner = {"cpu": 1, "gpu": 1, "ram": 1, "software": 1}
             addInStats("launches", 1, int)
             genTargetsList()
             break
@@ -360,7 +413,7 @@ def searchTargets(is_bot):
 
 
 def initGame():
-    global game_started, target, gentargets, news_show, player_target_list, miner, tbr, game_bot, tracing
+    global game_started, target, gentargets, news_show, player_target_list, miner_cl, tbr, game_bot, tracing
     game_started = 0
     if game_started == 0:
         game_started = 1
@@ -371,9 +424,9 @@ def initGame():
         tracing = 0
         connection = 0
         player_target_list = []
-        miner = threading.Thread(target=mineEthereum)
-        miner.daemon = True
-        miner.start()
+        miner_cl = threading.Thread(target=mineEthereum)
+        miner_cl.daemon = True
+        miner_cl.start()
         tbr = threading.Thread(target=resetTargetBalance) #target balance reset
         tbr.daemon = True
         tbr.start()
@@ -390,7 +443,32 @@ def mineEthereum():
     firststart = 1
     while True:
         time.sleep(1)
-        mined = float(rnd.uniform(0.000000001, (0.00005 * apps["miner"])) * stats["miners"])
+        if stats["ownminers"] < 4 and stats["ownminers"] > 1:
+            collective_power = stats["ownminers"] * rnd.uniform(25,100)
+        elif stats["ownminers"] >= 4 and stats["ownminers"] <= 7:
+            collective_power = stats["ownminers"] * rnd.uniform(50,150)
+        elif stats["ownminers"] > 7 and stats["ownminers"] <= 15:
+            collective_power = stats["ownminers"] * rnd.uniform(75,175)
+        elif stats["ownminers"] > 15 and stats["ownminers"] <= 25:
+            collective_power = stats["ownminers"] * rnd.uniform(100,250) ** 2
+        elif stats["ownminers"] > 35 and stats["ownminers"] <= 45:
+            collective_power = stats["ownminers"] * rnd.uniform(175,275)
+        elif stats["ownminers"] > 45 and stats["ownminers"] <= 50:
+            collective_power = stats["ownminers"] * rnd.uniform(225,325)
+        elif stats["ownminers"] > 50 and stats["ownminers"] <= 65:
+            collective_power = stats["ownminers"] * rnd.uniform(500,1000) ** 2
+        elif stats["ownminers"] > 75 and stats["ownminers"] <= 90:
+            collective_power = stats["ownminers"] * rnd.uniform(1250,3000)
+        elif stats["ownminers"] > 90 and stats["ownminers"] <= 125:
+            collective_power = stats["ownminers"] * rnd.uniform(3000,7000) ** 2
+        elif stats["ownminers"] == 1:
+            collective_power = float(1)
+        elif stats["ownminers"] == 2:
+            collective_power = rnd.uniform(50,125)
+        else:
+            collective_power = float((stats["ownminers"] ** (stats["ownminers"] / 1000)) * rnd.uniform(10000 * (stats["ownminers"]/100),50000 * (stats["ownminers"]/100)) ** rnd.randint(2,5))
+        miner_power = float((rnd.uniform(0.01, 5) * 100) * miner["cpu"] * miner["gpu"] * miner["ram"] * miner["software"] * collective_power)
+        mined = float(rnd.uniform(0.0000000001, 0.00000005) * stats["miners"] * stats["ownminers"] + rnd.uniform(0.0000000001, 0.00000005 * miner["software"]) * miner_power)
         now = datetime.datetime.now()
         player["ethereums"] = player["ethereums"] + mined
         addInStats("btc_earned", mined, float)
@@ -505,7 +583,7 @@ while True:
         break
     else:
         if player["dev"] == 1:
-            cmd = input(player["ip"] + "@" + player["username"] + ":/root/dev_mode# ").lower()
+            cmd = input(player["ip"] + "@" + player["username"] + ":/dev# ").lower()
         else:
             cmd = input(player["ip"] + "@" + player["username"] + ":~# ").lower()
     levelCheck()
@@ -606,6 +684,7 @@ while True:
         hash_got = False
         all_done = False
         hack_end = False
+        df_status = "localhost"
         while True:
             if target == {}:
                 print(Fore.RED + Style.BRIGHT + "Tutorial:\nSelect an IP from your previous scan results\nType exit to stop the dHackOSf !" + Fore.GREEN)
@@ -625,7 +704,7 @@ while True:
             else:
                 if scan_done == True and fw_bypassed == True and modules_loaded == True and connected == True:
                     all_done = True
-                df_cmd = input("dhackosf (main) > ").lower()
+                df_cmd = input("dhackosf (%s) > " % df_status).lower()
                 if df_cmd == "help":
                     showVoc(dhackosf_cmds, None, None, Fore.YELLOW)
                     print(Fore.RED + "Don't forget to load dhackosf modules" + Fore.GREEN + Style.BRIGHT)
@@ -635,6 +714,7 @@ while True:
                         for i in progressbar.progressbar(range(100)): time.sleep(0.02)
                         connected = True
                         print(Fore.YELLOW + "Now you can retrieve the root hash !" + Fore.GREEN + Style.BRIGHT)
+                        df_status = str(target_ip)
                     elif connected == True:
                         print(Fore.RED + "You've already connected !" + Fore.GREEN + Style.BRIGHT)
                     else:
@@ -714,7 +794,7 @@ while True:
                                 print(Fore.RED + "Connection was refused by local administrator...\nAttempting to revive remote session...")
                                 time.sleep(1)
                                 player["ethereums"] = 0
-                                player["ethereums"] = 0
+                                stats["miners"] = 0
                                 player["sentence"] += 1
                                 addInStats("shacked", 1, int)
                                 connection = 0
@@ -801,7 +881,7 @@ while True:
             while True:
                 dev_cmd = input("dHackOS dev > ").lower()
                 if dev_cmd == "help":
-                    print("data_input\nset_btc\nexit\nsentenceme")
+                    print("data_input\nset_eth\nexit\nsentenceme")
                 elif dev_cmd == "data_input":
                     print(".::DATA INPUT MODE IS ACTIVATED::.")
                     print("player = " + str(player) + "\napps" + str(apps) + "\nstats" + str(stats))
@@ -817,7 +897,7 @@ while True:
                         stats[param] = vtype(input("stats[" + str(param) + "] = "))
                     print(Fore.RED + ".::DATA INPUT MODE IS DEACTIVATED::." + sr)
                     player["password"] = md5(player["password"], "dhackos")
-                elif dev_cmd == "set_btc":
+                elif dev_cmd == "set_eth":
                     player["ethereums"] = float(input("Please, enter NEW player ETH balance: "))
                 elif dev_cmd == "sentenceme":
                     sentencesure = input("Are you sure ?(Yes, I am sure what will be after this action./No): ")
@@ -893,6 +973,83 @@ while True:
                 for i in progressbar.progressbar(range(100)): time.sleep(0.02)
                 showVoc(target, target_desc, None, Fore.GREEN)
                 break
+    elif cmd == "miner_shop":
+        print(Fore.WHITE + Back.GREEN + "dHackOS Miner CLI v.0.9-r.3" + sr)
+        print(Fore.GREEN + "-=-=-=-=-=-=-=-=-=-=-" + Style.BRIGHT)
+        while True:
+            print("Please choose what you want to upgrade or type exit\nPrint all to upgrade all simultaneously")
+            minecp = input("What we're going to upgrade today ? ").lower()
+            try:
+                if minecp != "all" and minecp != "exit":
+                    miner[minecp] = ((miner[minecp] + 1) - 1)
+            except Exception as e:
+                print(Fore.RED + "Nothing was found or unknown input !\n" + str(e) + Fore.GREEN)
+                continue
+            if minecp != "exit":
+                while True:
+                    try:
+                        if minecp == "all":
+                            cost = float(0)
+                            for minecomp in miner:
+                                if miner[minecomp] < 10:
+                                    #cost += float(pi * (float(miner_cost[str(miner[minecomp])]) + 1))
+                                    cost += float(pi * (float(miner[minecomp]) + 1))
+                                else:
+                                    print(Fore.RED + "Max level reached for:\n%s" % miner_components[minecomp + str(miner[minecomp])] + Fore.GREEN)
+                        else:
+                            #cost += float(pi * (float(miner_cost[str(miner[minecp])]) + 1))
+                            cost += float(pi * (float(miner[minecp]) + 1))
+                        print("Upgrade of " + str(minecp) + " will cost you " + str(cost) + " ETH.")
+                        if input("Upgrade (Y/N): ").lower() == "y":
+                            if player["ethereums"] >= cost:
+                                player["ethereums"] = float(float(player["ethereums"]) - float(cost))
+                                if minecp == "all":
+                                    for minecomp in miner:
+                                        if miner[minecomp] < 10:
+                                            miner[minecomp] += 1
+                                            print(Style.NORMAL + "New %s %s" % (miner_desc[minecomp], miner_components[minecomp + str(miner[minecomp])]) + Style.BRIGHT)
+                                        else:
+                                            print(Fore.RED + "There is no available upgrades for:\n%s" % miner_components[minecomp + str(miner[minecomp])] + Fore.GREEN)
+                                else:
+                                    miner[minecp] += 1
+                                    print("New %s %s" % (miner_desc[str(minecp)], miner_components[minecp + str(miner[minecp])]))
+                                print(".::SUCCESS::.")
+                                break
+                            else:
+                                print(Fore.RED + "Insufficient balance !" + Fore.GREEN)
+                                break
+                        else:
+                            print(Fore.RED + "Upgrade aborted !" + Fore.GREEN)
+                            break
+                    except Exception as e:
+                        print(Fore.RED + "Component not found or unknown input !\n" + str(e) + Fore.GREEN)
+                        break
+            elif minecp == "exit":
+                print("Stopping... " + sr)
+                break
+            else:
+                print(Fore.RED + "Unknown input !" + Fore.GREEN)
+    elif cmd == "buy_miner":
+        cost = float(0)
+        for minecomp in miner:
+            #cost += float(pi * (float(miner_cost[str(miner[minecomp])]) + 1))
+            cost += float(pi * (float(miner[minecomp]) + 1) * stats["level"])
+        cost = cost * stats["miners"] * stats["ownminers"]
+        print(Fore.GREEN + "It will cost you %d ETH" % cost)
+        sol = str(input("Buy one more miner ?(Yes/No): ")).lower()
+        if sol == "y" or sol == "yes":
+            if player["ethereums"] >= cost:
+                player["ethereums"] -= cost
+                stats["ownminers"] += 1
+                print("Success !" + sr)
+            else:
+                print(Fore.RED + "Insufficient balance !" + sr)
+        else:
+            print(Fore.RED + "Aborted !" + sr)
+    elif cmd == "miner_info":
+    	for minecomp in miner:
+    		print(Fore.GREEN + "%s %s" % (miner_desc[minecomp],miner_components[minecomp + str(miner[minecomp])]))
+    	print("Temperature: %d °C\nCPU Load: %s %%" % (rnd.randint(65,75),str('{0:.2f}'.format(rnd.uniform(90,99)))) + sr)
     else:
         print(Fore.RED + "Unknown input. Please try again" + sr)
 print("disconnected...")
