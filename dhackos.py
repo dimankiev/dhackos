@@ -17,7 +17,7 @@ except Exception as e:
     exit()
 sr = Style.RESET_ALL
 init()
-version = "0.2.2b"
+version = "0.2.3b"
 print(Fore.GREEN + "Welcome to dHackOS Boot Interface !")
 print("Initializing dimankiev's Hack OS...")
 print(Fore.YELLOW + "Loading configuration...")
@@ -34,7 +34,7 @@ about = {
     "Website :": "http://aaa114-project.tk",
     "E-Mail :": "dimankiev@gmail.com",
     "Secret Alpha testing :": "TapTrue (https://t.me/tapTrue)",
-    "Pre-release beta testing :": "LINKI (https://t.me/@LINKICoder)",
+    "Pre-release beta testing :": "LINKI (https://t.me/LINKICoder)",
     "Telegram group :": "https://t.me/dhackos",
     "GitHub :": "https://github.com/dimankiev/dhackos"
 }
@@ -76,7 +76,7 @@ dhackosf_cmds = {
     "exit": " - exit from dhackosf"
 }
 stats_desc = {
-    "btc_earned": "Ethereums earned: ",
+    "eth_earned": "Ethereums earned: ",
     "shacked": "Servers hacked: ",
     "xp": "Experience earned: ",
     "rep": "Reputation earned: ",
@@ -197,6 +197,9 @@ def loadGame(username):
         targets = data.targets
         ips = data.ips
         miner = data.miner
+        saveinfo = data.saveinfo
+        if saveinfo["version"] != version:
+            compatibility = data.incopatible_version
         print(Fore.GREEN + Style.BRIGHT + "Welcome " + player["username"] + "!" + sr)
         if md5(pwd.getpass("Please enter your password: "), "dhackos") != player["password"]:
             print(Fore.RED + "The password is wrong !\n" + sr)
@@ -205,13 +208,14 @@ def loadGame(username):
             addInStats("launches", 1, int)
             success_load = 1
     except Exception as e:
-        print(Fore.RED + "Save is missing or corrupted !\n" + sr)
+        print(Fore.RED + "Save is missing or corrupted !\nSave version may be old\n%s" % e + sr)
 
 
 def saveGame(username):
+    saveinfo = {"version": str(version)}
     try:
         save = open(str(username) + ".bin", "w")
-        save.write("player = " + str(player) + "\n" + "apps = " + str(apps) + "\n" + "stats = " + str(stats) + "\n" + "minehistory = " + str(minehistory) + "\n" + "targets = " + str(targets) + "\n" + "ips = " + str(ips) + "\n" + "miner = " + str(miner))
+        save.write("player = " + str(player) + "\n" + "apps = " + str(apps) + "\n" + "stats = " + str(stats) + "\n" + "minehistory = " + str(minehistory) + "\n" + "targets = " + str(targets) + "\n" + "ips = " + str(ips) + "\n" + "miner = " + str(miner) + "\n" + "saveinfo = " + str(saveinfo))
         save.close()
     except PermissionError:
         print("Save failed ! Please check your read/write permissions\n(If you a Linux or Android user, check chmod or try to launch this game as root)")
@@ -233,7 +237,7 @@ def newGame():
         else:
             player["password"] = md5(player["password"], "dhackos")
             apps = {"scanner": 1, "spam": 1, "bruteforce": 1, "sdk": 1, "ipspoofing": 1, "dechyper": 1}
-            stats = {"btc_earned": 0.0, "shacked": 0, "xp": 0, "rep": 0, "scans": 0, "level": 1, "symbols": 0,
+            stats = {"eth_earned": 0.0, "shacked": 0, "xp": 0, "rep": 0, "scans": 0, "level": 1, "symbols": 0,
                      "launches": 0, "miners": 1, "ownminers": 1, "proxy": 0}
             miner = {"cpu": 1, "gpu": 1, "ram": 1, "software": 1}
             addInStats("launches", 1, int)
@@ -405,7 +409,7 @@ def searchTargets(is_bot):
         player_target_list = loadTargetList()
         print(Fore.GREEN + "Targets found !\nIP list:" + Style.BRIGHT)
         for i in range(0, len(player_target_list)): print(str(i) + ". " + player_target_list[int(i)])
-        print(Style.NORMAL + "Please choose the IP, launch dHackOSf and enter the IP what you choosen" + sr)
+        print(Style.NORMAL + "Please choose the IP, launch " + Style.BRIGHT + "dHackOSf" + Style.NORMAL + " and enter the IP what you choosen" + sr)
     else:
         bot_target_list = loadTargetList()
         bot_target = targets[bot_target_list[rnd.randint(0,(len(bot_target_list) - 1))]]
@@ -471,7 +475,7 @@ def mineEthereum():
         mined = float(rnd.uniform(0.0000000001, 0.00000005) * stats["miners"] * stats["ownminers"] + rnd.uniform(0.0000000001, 0.00000005 * miner["software"]) * miner_power)
         now = datetime.datetime.now()
         player["ethereums"] = player["ethereums"] + mined
-        addInStats("btc_earned", mined, float)
+        addInStats("eth_earned", mined, float)
         if miner_enroll == 1:
             continue
         elif miner_enroll == 0 and game_started == 1:
@@ -616,6 +620,7 @@ while True:
             if program != "exit":
                 while True:
                     try:
+                        cost = float(0)
                         levels = int(input("How many levels do you want to upgrade (1-∞): "))
                         if levels <= 0:
                             print(Fore.RED + "This value can't be zero or be less than zero" + Fore.GREEN)
@@ -814,7 +819,7 @@ while True:
                                 print(Fore.RED + ".::Replacing addresses::.")
                                 for i in progressbar.progressbar(range(100)): time.sleep(0.02)
                                 player["ethereums"] = player["ethereums"] + target["ethereums"]
-                                addInStats("btc_earned", target["ethereums"], float)
+                                addInStats("eth_earned", target["ethereums"], float)
                                 target["ethereums"] = 0.0
                                 print(Fore.YELLOW + "Transfer successful !")
                                 print("Closing wallet..." + Fore.GREEN)
@@ -824,6 +829,7 @@ while True:
                                 earn = pi / (100 / (apps["spam"] + apps["ipspoofing"]))
                                 player["ethereums"] = player["ethereums"] + earn
                                 addInStats("shacked", 1, int)
+                                addInStats("eth_earned", earn, float)
                                 print(Fore.GREEN + "Success. Earned from spam: " + Fore.RED + str(earn) + " " + Back.YELLOW + "B" + sr)
                                 print(Fore.RED + "[dHackOSf] Console closed ! Disconnecting..." + sr)
                                 break
@@ -988,8 +994,8 @@ while True:
             if minecp != "exit":
                 while True:
                     try:
+                        cost = float(0)
                         if minecp == "all":
-                            cost = float(0)
                             for minecomp in miner:
                                 if miner[minecomp] < 10:
                                     #cost += float(pi * (float(miner_cost[str(miner[minecomp])]) + 1))
