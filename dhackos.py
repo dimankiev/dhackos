@@ -17,14 +17,22 @@ except Exception as e:
     exit()
 sr = Style.RESET_ALL
 init()
-version = "0.2.3b"
+version = "0.2.4b-1a"
 print(Fore.GREEN + "Welcome to dHackOS Boot Interface !")
 print("Initializing dimankiev's Hack OS...")
 print(Fore.YELLOW + "Loading configuration...")
 companies = ["LG", "Samsung", "Lenovo", "Sony", "nVidia", "FBI", "CIA", "Valve", "Facebook", "Google",
              "Introversion Software", "Tesla Motors", "aaa114-project", "Microsoft", "SoloLearn Inc.", "Pharma",
              "Nestle", "Unknown", "Doogee", "Ethereum", "Ethereum", "Intel", "AMD", "ASIC", "Telegram", "LinkedIn",
-             "Instagram", "DEFCON", "SCP", "HackNet", "Python", "Google Project Fi", "DDoS Booter Ltd.", "Valve", "Steam", "ST corp."]
+             "Instagram", "DEFCON", "SCP", "HackNet", "Python", "Google Project Fi", "DDoS Booter Ltd.", "Valve", "Steam", "ST corp.", "dHackOS"]
+bank_help = {
+    "help": " - list available commands",
+    "borrow": " - borrow allowed amount of ETH",
+    "deposit": " - deposit ETH to bank balance",
+    "withdraw": " - withdraw ETH from bank balance",
+    "info": " - show your bank account info",
+    "exit": " - close the bank CLI"
+}
 about = {
     "dHackOS v.": version,
     "Author :": "dimankiev",
@@ -62,7 +70,8 @@ cmds = {
     "news": " - show latest cyber security news",
     "debug_info": " - shows you debug information",
     "miner_info": " - shows you your miner components",
-    "buy_miner": " - buy one more miner"
+    "buy_miner": " - buy one more miner",
+    "bank": " - alpha pre-release (not finished yet)"
 }
 dhackosf_cmds = {
     "help": " - dhackosf cmd list",
@@ -186,7 +195,7 @@ def getVarFromFile(filename):
 
 
 def loadGame(username):
-    global player, apps, stats, success_load, minehistory, targets, ips, miner
+    global player, apps, stats, success_load, minehistory, targets, ips, miner, bank
     success_load = 0
     try:
         getVarFromFile(str(username) + ".bin")
@@ -197,6 +206,7 @@ def loadGame(username):
         targets = data.targets
         ips = data.ips
         miner = data.miner
+        bank = data.bank
         saveinfo = data.saveinfo
         if saveinfo["version"] != version:
             compatibility = data.incopatible_version
@@ -215,7 +225,7 @@ def saveGame(username):
     saveinfo = {"version": str(version)}
     try:
         save = open(str(username) + ".bin", "w")
-        save.write("player = " + str(player) + "\n" + "apps = " + str(apps) + "\n" + "stats = " + str(stats) + "\n" + "minehistory = " + str(minehistory) + "\n" + "targets = " + str(targets) + "\n" + "ips = " + str(ips) + "\n" + "miner = " + str(miner) + "\n" + "saveinfo = " + str(saveinfo))
+        save.write("player = " + str(player) + "\n" + "apps = " + str(apps) + "\n" + "stats = " + str(stats) + "\n" + "minehistory = " + str(minehistory) + "\n" + "targets = " + str(targets) + "\n" + "ips = " + str(ips) + "\n" + "miner = " + str(miner) + "\n" + "saveinfo = " + str(saveinfo) + "\n" + "bank = " + str(bank))
         save.close()
     except PermissionError:
         print("Save failed ! Please check your read/write permissions\n(If you a Linux or Android user, check chmod or try to launch this game as root)")
@@ -223,7 +233,7 @@ def saveGame(username):
 
 def newGame():
     while True:
-        global player, apps, stats, minehistory, news, miner
+        global player, apps, stats, minehistory, news, miner, bank
         news = {}
         player = {"ethereums": 0.0, "ip": genIP(), "dev": 0, "ipv6": 0, "xp": 0, "sentence": 0}
         player["username"] = str(input("Please enter your username: ").lower())
@@ -240,10 +250,35 @@ def newGame():
             stats = {"eth_earned": 0.0, "shacked": 0, "xp": 0, "rep": 0, "scans": 0, "level": 1, "symbols": 0,
                      "launches": 0, "miners": 1, "ownminers": 1, "proxy": 0}
             miner = {"cpu": 1, "gpu": 1, "ram": 1, "software": 1}
+            bank = {"balance": 0, "borrowed": 0, "deposit_rate": rnd.randint(5,9), "credit_rate": rnd.randint(9,13), "max_credit": 300, "borrow_time": 0}
             addInStats("launches", 1, int)
             genTargetsList()
             break
 
+
+def bankWork():
+    global bank, player
+    while True:
+        time.sleep(60)
+        if bank["borrowed"] > 0:
+            bank["borrowed"] += float((bank["borrowed"] / 100) * bank["credit_rate"])
+            bank["balance"] += float((bank["balance"] / 100) * bank["deposit_rate"])
+            if bank["borrowed"] >= bank["balance"] and bank["balance"] != 0:
+                bank["borrowed"] -= bank["balance"]
+                bank["balance"] = 0
+            elif bank["borrowed"] < bank["balance"] and bank["balance"] != 0:
+                bank["balance"] -= bank["borrowed"]
+                bank["borrowed"] = 0
+            elif bank["borrowed"] > 0 and bank["balance"] == 0 and bank["borrow_time"] != 30:
+                bank["borrow_time"] += 1
+            elif bank["borrow_time"] == 30 and bank["borrowed"] > 0 and player["ethereums"] > 0:
+                bank["borrowed"] -= player["ethereums"]
+                player["ethereums"] = 0
+                bank["borrow_time"] = 0
+            else:
+                print(Fore.RED + "You have% d mins to pay off your debts before the bank confiscates your ETH !" % bank["borrow_time"] + sr)
+        else:
+            bank["balance"] += float((bank["balance"] / 100) * bank["deposit_rate"])
 
 def addInStats(param, value, type):
     try:
@@ -437,6 +472,9 @@ def initGame():
         game_bot = threading.Thread(target=gameBot)
         game_bot.daemon = True
         game_bot.start()
+        bank_worker = threading.Thread(target=bankWork)
+        bank_worker.daemon = True
+        bank_worker.start()
 
 
 def mineEthereum():
@@ -1056,6 +1094,25 @@ while True:
     	for minecomp in miner:
     		print(Fore.GREEN + "%s %s" % (miner_desc[minecomp],miner_components[minecomp + str(miner[minecomp])]))
     	print("Temperature: %d °C\nCPU Load: %s %%" % (rnd.randint(65,75),str('{0:.2f}'.format(rnd.uniform(90,99)))) + sr)
+    elif cmd == "bank":
+        print(Fore.YELLOW + "Welcome to DarkNet Bank !\n" + sr)
+        while True:
+            bcmd = str(input("bank CLI > ")).lower()
+            if bcmd == "help":
+                showVoc(bank_help,None,None,Fore.YELLOW)
+            elif bcmd == "info":
+                print(Fore.GREEN + "Your IP: %s\nBank balance: %s\nBorrowed: %s\nDeposit rate: %d%%/min\nCredit rate: %d%%/min" % (player["ip"],str('{0:.6f}'.format(bank["balance"])),str('{0:.6f}'.format(bank["borrowed"])),bank["deposit_rate"],bank["credit_rate"]) + sr)
+            elif bcmd == "borrow":
+                print(Fore.YELLOW + "This feature is not available now.\nThat feature will be added in the next update" + sr)
+            elif bcmd == "deposit":
+                print(Fore.YELLOW + "This feature is not available now.\nThat feature will be added in the next update" + sr)
+            elif bcmd == "withdraw":
+                print(Fore.YELLOW + "This feature is not available now.\nThat feature will be added in the next update" + sr)
+            elif bcmd == "exit":
+                print(Fore.RED + "Closing DarkNet Bank CLI..." + sr)
+                break
+            else:
+                print(Fore.RED + "Unknown input !" + sr)
     else:
         print(Fore.RED + "Unknown input. Please try again" + sr)
 print("disconnected...")
