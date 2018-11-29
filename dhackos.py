@@ -17,7 +17,7 @@ except Exception as e:
     exit()
 sr = Style.RESET_ALL
 init()
-version = "0.2.4b-1a"
+version = "0.2.4b"
 print(Fore.GREEN + "Welcome to dHackOS Boot Interface !")
 print("Initializing dimankiev's Hack OS...")
 print(Fore.YELLOW + "Loading configuration...")
@@ -216,13 +216,18 @@ def loadGame(username):
             success_load = 0
         else:
             addInStats("launches", 1, int)
+            off_earn_k = time.time() - saveinfo["timestamp"]
+            miner_power = float((rnd.uniform(0.0000001, 0.0005) * rnd.randint(25,100)) * miner["cpu"] * miner["gpu"] * miner["ram"] * miner["software"] * 20000)
+            mined = float(rnd.uniform(0.0000000001, 0.00000005) * stats["miners"] * (stats["ownminers"] ** 3) + rnd.uniform(0.0000000001, 0.00000005 * miner["software"]) * miner_power * (miner_power / 20000))
+            player["ethereums"] += mined * off_earn_k
+            print(Fore.MAGENTA + Style.BRIGHT + "Offline earnings: %s ETH" % str('{0:.10f}'.format(float(mined * off_earn_k))) + sr)
             success_load = 1
     except Exception as e:
         print(Fore.RED + "Save is missing or corrupted !\nSave version may be old\n%s" % e + sr)
 
 
 def saveGame(username):
-    saveinfo = {"version": str(version)}
+    saveinfo = {"version": str(version), "timestamp": time.time()}
     try:
         save = open(str(username) + ".bin", "w")
         save.write("player = " + str(player) + "\n" + "apps = " + str(apps) + "\n" + "stats = " + str(stats) + "\n" + "minehistory = " + str(minehistory) + "\n" + "targets = " + str(targets) + "\n" + "ips = " + str(ips) + "\n" + "miner = " + str(miner) + "\n" + "saveinfo = " + str(saveinfo) + "\n" + "bank = " + str(bank))
@@ -235,7 +240,7 @@ def newGame():
     while True:
         global player, apps, stats, minehistory, news, miner, bank
         news = {}
-        player = {"ethereums": 0.0, "ip": genIP(), "dev": 0, "ipv6": 0, "xp": 0, "sentence": 0}
+        player = {"ethereums": 350.0, "ip": genIP(), "dev": 0, "ipv6": 0, "xp": 0, "sentence": 0}
         player["username"] = str(input("Please enter your username: ").lower())
         player["password"] = str(pwd.getpass("Please enter your password: ").lower())
         if len(player["password"]) < 6:
@@ -250,7 +255,7 @@ def newGame():
             stats = {"eth_earned": 0.0, "shacked": 0, "xp": 0, "rep": 0, "scans": 0, "level": 1, "symbols": 0,
                      "launches": 0, "miners": 1, "ownminers": 1, "proxy": 0}
             miner = {"cpu": 1, "gpu": 1, "ram": 1, "software": 1}
-            bank = {"balance": 0, "borrowed": 0, "deposit_rate": rnd.randint(5,9), "credit_rate": rnd.randint(9,13), "max_credit": 300, "borrow_time": 0}
+            bank = {"balance": 0, "borrowed": 0, "deposit_rate": rnd.randint(5,9), "credit_rate": rnd.randint(9,13), "max_borrow": 300, "borrow_time": 0}
             addInStats("launches", 1, int)
             genTargetsList()
             break
@@ -271,14 +276,19 @@ def bankWork():
                 bank["borrowed"] = 0
             elif bank["borrowed"] > 0 and bank["balance"] == 0 and bank["borrow_time"] != 30:
                 bank["borrow_time"] += 1
+                if bank["borrow_time"] > 25:
+                    print(Fore.RED + "\nYou have %d mins to pay off your debts before the bank confiscates your ETH !" % (30 - bank["borrow_time"]) + sr)
             elif bank["borrow_time"] == 30 and bank["borrowed"] > 0 and player["ethereums"] > 0:
                 bank["borrowed"] -= player["ethereums"]
+                bank["borrowed"] -= bank["balance"]
                 player["ethereums"] = 0
                 bank["borrow_time"] = 0
+                print(Fore.RED + "\nBank confiscated all your money !\nYour borrow is: %s ETH" % str('{0:.6f}'.format(bank["borrowed"])))
             else:
-                print(Fore.RED + "You have% d mins to pay off your debts before the bank confiscates your ETH !" % bank["borrow_time"] + sr)
+                print(Fore.RED + "\nYou have %d mins to pay off your debts before the bank confiscates your ETH !" % (30 - bank["borrow_time"]) + sr)
         else:
             bank["balance"] += float((bank["balance"] / 100) * bank["deposit_rate"])
+            bank["max_borrow"] += bank["balance"] / 100
 
 def addInStats(param, value, type):
     try:
@@ -487,30 +497,43 @@ def mineEthereum():
         time.sleep(1)
         if stats["ownminers"] < 4 and stats["ownminers"] > 1:
             collective_power = stats["ownminers"] * rnd.uniform(25,100)
+            #print("Collective Power Level: 1.2")
         elif stats["ownminers"] >= 4 and stats["ownminers"] <= 7:
             collective_power = stats["ownminers"] * rnd.uniform(50,150)
+            #print("Collective Power Level: 2")
         elif stats["ownminers"] > 7 and stats["ownminers"] <= 15:
             collective_power = stats["ownminers"] * rnd.uniform(75,175)
+            #print("Collective Power Level: 3")
         elif stats["ownminers"] > 15 and stats["ownminers"] <= 25:
             collective_power = stats["ownminers"] * rnd.uniform(100,250) ** 2
+            #print("Collective Power Level: 4")
         elif stats["ownminers"] > 35 and stats["ownminers"] <= 45:
             collective_power = stats["ownminers"] * rnd.uniform(175,275)
+            #print("Collective Power Level: 5")
         elif stats["ownminers"] > 45 and stats["ownminers"] <= 50:
             collective_power = stats["ownminers"] * rnd.uniform(225,325)
+            #print("Collective Power Level: 6")
         elif stats["ownminers"] > 50 and stats["ownminers"] <= 65:
             collective_power = stats["ownminers"] * rnd.uniform(500,1000) ** 2
+            #print("Collective Power Level: 7")
         elif stats["ownminers"] > 75 and stats["ownminers"] <= 90:
             collective_power = stats["ownminers"] * rnd.uniform(1250,3000)
+            #print("Collective Power Level: 8")
         elif stats["ownminers"] > 90 and stats["ownminers"] <= 125:
             collective_power = stats["ownminers"] * rnd.uniform(3000,7000) ** 2
+            #print("Collective Power Level: 9")
         elif stats["ownminers"] == 1:
             collective_power = float(1)
+            #print("Collective Power Level: 0")
         elif stats["ownminers"] == 2:
             collective_power = rnd.uniform(50,125)
+            #print("Collective Power Level: 1")
         else:
-            collective_power = float((stats["ownminers"] ** (stats["ownminers"] / 1000)) * rnd.uniform(10000 * (stats["ownminers"]/100),50000 * (stats["ownminers"]/100)) ** rnd.randint(2,5))
-        miner_power = float((rnd.uniform(0.01, 5) * 100) * miner["cpu"] * miner["gpu"] * miner["ram"] * miner["software"] * collective_power)
-        mined = float(rnd.uniform(0.0000000001, 0.00000005) * stats["miners"] * stats["ownminers"] + rnd.uniform(0.0000000001, 0.00000005 * miner["software"]) * miner_power)
+            collective_power = float((stats["ownminers"] ** (stats["ownminers"] / 500)) * rnd.uniform(10000 * (stats["ownminers"]/100),50000 * (stats["ownminers"]/100)) ** rnd.randint(2,5))
+            #print("Collective Power Level: 10")
+        miner_power = float((rnd.uniform(0.0000001, 0.0005) * rnd.randint(25,100)) * miner["cpu"] * miner["gpu"] * miner["ram"] * miner["software"] * collective_power)
+        mined = float(rnd.uniform(0.0000000001, 0.00000005) * stats["miners"] * (stats["ownminers"] ** 3) + rnd.uniform(0.0000000001, 0.00000005 * miner["software"]) * miner_power * (miner_power / collective_power))
+        #print("Collective Power: %s | Miner Power: %s | Mined: %s" % (str(collective_power),str(miner_power),str(mined)))
         now = datetime.datetime.now()
         player["ethereums"] = player["ethereums"] + mined
         addInStats("eth_earned", mined, float)
@@ -868,7 +891,7 @@ while True:
                                 player["ethereums"] = player["ethereums"] + earn
                                 addInStats("shacked", 1, int)
                                 addInStats("eth_earned", earn, float)
-                                print(Fore.GREEN + "Success. Earned from spam: " + Fore.RED + str(earn) + " " + Back.YELLOW + "B" + sr)
+                                print(Fore.GREEN + "Success. Earned from spam: " + Fore.RED + str(earn) + " " + Back.YELLOW + "ETH" + sr)
                                 print(Fore.RED + "[dHackOSf] Console closed ! Disconnecting..." + sr)
                                 break
                             elif tcmd == "developer_mode":
@@ -1078,7 +1101,7 @@ while True:
         for minecomp in miner:
             #cost += float(pi * (float(miner_cost[str(miner[minecomp])]) + 1))
             cost += float(pi * (float(miner[minecomp]) + 1) * stats["level"])
-        cost = cost * stats["miners"] * stats["ownminers"]
+        cost = cost * stats["ownminers"]
         print(Fore.GREEN + "It will cost you %d ETH" % cost)
         sol = str(input("Buy one more miner ?(Yes/No): ")).lower()
         if sol == "y" or sol == "yes":
@@ -1096,18 +1119,77 @@ while True:
     	print("Temperature: %d °C\nCPU Load: %s %%" % (rnd.randint(65,75),str('{0:.2f}'.format(rnd.uniform(90,99)))) + sr)
     elif cmd == "bank":
         print(Fore.YELLOW + "Welcome to DarkNet Bank !\n" + sr)
+        #bank = {"balance": 0, "borrowed": 0, "deposit_rate": rnd.randint(5,9), "credit_rate": rnd.randint(9,13), "max_borrow": 300, "borrow_time": 0}
         while True:
-            bcmd = str(input("bank CLI > ")).lower()
+            bcmd = str(input("BankCLI (main) > ")).lower()
             if bcmd == "help":
                 showVoc(bank_help,None,None,Fore.YELLOW)
             elif bcmd == "info":
                 print(Fore.GREEN + "Your IP: %s\nBank balance: %s\nBorrowed: %s\nDeposit rate: %d%%/min\nCredit rate: %d%%/min" % (player["ip"],str('{0:.6f}'.format(bank["balance"])),str('{0:.6f}'.format(bank["borrowed"])),bank["deposit_rate"],bank["credit_rate"]) + sr)
             elif bcmd == "borrow":
-                print(Fore.YELLOW + "This feature is not available now.\nThat feature will be added in the next update" + sr)
+                while True:
+                    print(Fore.YELLOW + "\nMax amount of ETH which you can borrow: %s ETH\nYour current ETH balance: %s ETH\nBank balance: %s ETH" % (str(str('{0:.6f}'.format(bank["max_borrow"]))),str(str('{0:.6f}'.format(player["ethereums"]))),str(str('{0:.6f}'.format(bank["balance"])))) + sr)
+                    try:
+                        borrow = float(input("How many ETH you want to borrow ?(Numeric): "))
+                        if borrow <= bank["max_borrow"] and bank["borrowed"] == 0:
+                            player["ethereums"] += borrow
+                            bank["borrowed"] += borrow
+                            print(Fore.GREEN + "Successful !" + sr)
+                            break
+                        elif bank["borrowed"] > 0:
+                            print(Fore.RED + "Borrow exists !\nOperation aborted !" + sr)
+                        elif borrow == "exit":
+                            break
+                        else:
+                            print(Fore.RED + "Insufficient balance !\nOperation aborted !" + sr)
+                            break
+                    except:
+                        print(Fore.RED + "Non-numeric value entered !\nOperation aborted !" + sr)
+                        break
             elif bcmd == "deposit":
-                print(Fore.YELLOW + "This feature is not available now.\nThat feature will be added in the next update" + sr)
+                while True:
+                    print(Fore.YELLOW + "\nYour current ETH balance: %s ETH\nBank balance: %s ETH" % (str(str('{0:.6f}'.format(player["ethereums"]))),str(str('{0:.6f}'.format(bank["balance"])))) + sr)
+                    try:
+                        deposit = float(input("How many ETH you want to deposit ?(Numeric): "))
+                        if deposit <= player["ethereums"] and bank["borrowed"] == 0:
+                            bank["balance"] += deposit
+                            player["ethereums"] -= deposit
+                            bank["max_borrow"] += float(deposit / 100)
+                            print(Fore.GREEN + "Successful !" + sr)
+                            break
+                        elif deposit <= player["ethereums"] and bank["borrowed"] > 0:
+                            bank["borrowed"] -= deposit
+                            player["ethereums"] -= deposit
+                            bank["max_borrow"] += float(deposit / 100)
+                            print(Fore.GREEN + "Successful !\nNow your borrow is: %s ETH" % str('{0:.6f}'.format(bank["borrowed"])) + sr)
+                            break
+                        elif deposit == "exit":
+                            break
+                        else:
+                            print(Fore.RED + "Insufficient balance !\nDeposit aborted !" + sr)
+                            break
+                    except Exception as e:
+                        print(Fore.RED + "Non-numeric value entered !\nOperation aborted !" + sr)
+                        print(str(e))
+                        break
             elif bcmd == "withdraw":
-                print(Fore.YELLOW + "This feature is not available now.\nThat feature will be added in the next update" + sr)
+                while True:
+                    print(Fore.YELLOW + "\nYour current ETH balance: %s ETH\nBank balance: %s ETH" % (str(str('{0:.6f}'.format(player["ethereums"]))),str(str('{0:.6f}'.format(bank["balance"])))) + sr)
+                    try:
+                        withdraw = float(input("How many ETH you want to withdraw ?(Numeric): "))
+                        if withdraw <= bank["balance"]:
+                            bank["balance"] -= withdraw
+                            player["ethereums"] += withdraw
+                            print(Fore.GREEN + "Successful !" + sr)
+                            break
+                        elif withdraw == "exit":
+                            break
+                        else:
+                            print(Fore.RED + "Insufficient balance !\nWithdraw aborted !" + sr)
+                            break
+                    except:
+                        print(Fore.RED + "Non-numeric value entered !\nOperation aborted !" + sr)
+                        break
             elif bcmd == "exit":
                 print(Fore.RED + "Closing DarkNet Bank CLI..." + sr)
                 break
