@@ -6,7 +6,7 @@ Written using Python 3.6.
 
 Bots, subnets, interesting hacking process, miners, and a lot of interesting things included in this game.
 
-Actual version: 0.2.4b
+Actual version: 0.2.5b
 
 Installation (Android)
 -----------------------
@@ -28,6 +28,7 @@ Installation (Android)
    pip install colorama
    pip install progressbar2
    pip install hashlib
+   pip install shelve
    ```
 7. Use `git clone https://github.com/dimankiev/dhackos.git` command to download the game
 
@@ -48,6 +49,7 @@ Installation (Windows)
    pip install colorama
    pip install progressbar2
    pip install hashlib
+   pip install shelve
    ```
 3. Download the game archive [HERE][4] and unzip it to any folder (Example: `C:\Games\dHackOS`)
 
@@ -77,7 +79,7 @@ Getting started
     shutdown - shutdown dHackOS
     scan - scan subnet and search for vulnerable servers
     scan_target - scan an IP and gather information about target server
-    balance - opens Bitcoin wallet where you can see your Bitcoin balance
+    balance - opens Ethereum wallet where you can see your Ethereum balance
     load_list - shows you targets list
     dhackosf - start the dHackOS exploitation framework
     upgrade - launch dHackOS programs upgrade CLI
@@ -89,6 +91,9 @@ Getting started
     rescan_subnet - rescans subnet to find new targets
     news - show latest cyber security news
     debug_info - shows you debug information
+    miner_info - shows you your miner components
+    buy_miner - buy one more miner
+    bank - DarkNet Bank CLI
    ```
 
 3. Use scan to find first targets.
@@ -113,6 +118,7 @@ Requirements
    pip install colorama
    pip install progressbar2
    pip install hashlib
+   pip install shelve
    ```
 
 Links
