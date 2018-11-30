@@ -379,8 +379,8 @@ def genTargetsList():
 
 
 def traceStart():
-    global tracing, connection
-    tracing = int((stats["proxy"] + apps["ipspoofing"]) / ((2 * stats["level"])) + rnd.randint(0,10))
+    global tracing, connection, target
+    tracing = int(apps["ipspoofing"] - target["firewall"]) + stats["proxy"] * 2
     if tracing <= 13:
         #print(str(tracing) + "sec calculated") #debug_info
         tracing = 13
@@ -390,6 +390,17 @@ def traceStart():
             tracing -= 1
         else:
             break
+
+
+def proxyKill():
+    global stats
+    while True:
+        time.sleep(30)
+        chance = rnd.randint(0,100)
+        if chance >= 50:
+            if stats["proxy"] > 5:
+                stats["proxy"] -= 1
+
 
 def loadTargetList():
     t_num = 0
@@ -498,6 +509,9 @@ def initGame():
         bank_worker = threading.Thread(target=bankWork)
         bank_worker.daemon = True
         bank_worker.start()
+        proxy_hunter = threading.Thread(target=proxyKill)
+        proxy_hunter.daemon = True
+        proxy_hunter.start()
 
 
 def mineEthereum():
@@ -1132,6 +1146,7 @@ while True:
     	print("Temperature: %d °C\nCPU Load: %s %%" % (rnd.randint(65,75),str('{0:.2f}'.format(rnd.uniform(90,99)))) + sr)
     elif cmd == "bank":
         print(Fore.YELLOW + "Welcome to DarkNet Bank !\n" + sr)
+        #bank = {"balance": 0, "borrowed": 0, "deposit_rate": rnd.randint(5,9), "credit_rate": rnd.randint(9,13), "max_borrow": 300, "borrow_time": 0}
         while True:
             bcmd = str(input("BankCLI (main) > ")).lower()
             if bcmd == "help":
