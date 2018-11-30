@@ -71,7 +71,7 @@ cmds = {
     "debug_info": " - shows you debug information",
     "miner_info": " - shows you your miner components",
     "buy_miner": " - buy one more miner",
-    "bank": " - alpha pre-release (not finished yet)"
+    "bank": " - DarkNet Bank CLI"
 }
 dhackosf_cmds = {
     "help": " - dhackosf cmd list",
@@ -1132,7 +1132,6 @@ while True:
     	print("Temperature: %d °C\nCPU Load: %s %%" % (rnd.randint(65,75),str('{0:.2f}'.format(rnd.uniform(90,99)))) + sr)
     elif cmd == "bank":
         print(Fore.YELLOW + "Welcome to DarkNet Bank !\n" + sr)
-        #bank = {"balance": 0, "borrowed": 0, "deposit_rate": rnd.randint(5,9), "credit_rate": rnd.randint(9,13), "max_borrow": 300, "borrow_time": 0}
         while True:
             bcmd = str(input("BankCLI (main) > ")).lower()
             if bcmd == "help":
