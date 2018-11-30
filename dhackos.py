@@ -1,7 +1,7 @@
 try:
     import getpass as pwd
     import random as rnd
-    import threading, progressbar, time, imp, hashlib, base64, string, datetime, platform
+    import threading, progressbar, time, shelve, hashlib, base64, string, datetime, platform
     from psutil import *
     from os import stat, remove
     from colorama import Fore, Back, Style, init
@@ -17,7 +17,7 @@ except Exception as e:
     exit()
 sr = Style.RESET_ALL
 init()
-version = "0.2.4b"
+version = "0.2.5b"
 print(Fore.GREEN + "Welcome to dHackOS Boot Interface !")
 print("Initializing dimankiev's Hack OS...")
 print(Fore.YELLOW + "Loading configuration...")
@@ -183,33 +183,36 @@ def genIP():
 
 
 def getVarFromFile(filename):
-    global success_sload
+    global success_sload, data
     try:
-        f = open(filename)
-        global data
-        data = imp.load_source('data', '', f)
-        f.close()
+        data = shelve.open(filename)
         success_sload = 1
     except:
         success_sload = 0
+        data.close()
+    return success_sload
 
 
 def loadGame(username):
     global player, apps, stats, success_load, minehistory, targets, ips, miner, bank
     success_load = 0
     try:
-        getVarFromFile(str(username) + ".bin")
-        player = data.player
-        apps = data.apps
-        stats = data.stats
-        minehistory = data.minehistory
-        targets = data.targets
-        ips = data.ips
-        miner = data.miner
-        bank = data.bank
-        saveinfo = data.saveinfo
+        data_load = getVarFromFile(str(username))
+        if data_load == 1:
+            player = data['player']
+            apps = data['apps']
+            stats = data['stats']
+            minehistory = data['minehistory']
+            targets = data['targets']
+            ips = data['ips']
+            miner = data['miner']
+            bank = data['bank']
+            saveinfo = data['saveinfo']
+            data.close()
+        else:
+            data.close()
         if saveinfo["version"] != version:
-            compatibility = data.incopatible_version
+            compatibility = data['incopatible_version']
         print(Fore.GREEN + Style.BRIGHT + "Welcome " + player["username"] + "!" + sr)
         if md5(pwd.getpass("Please enter your password: "), "dhackos") != player["password"]:
             print(Fore.RED + "The password is wrong !\n" + sr)
@@ -217,23 +220,33 @@ def loadGame(username):
         else:
             addInStats("launches", 1, int)
             off_earn_k = time.time() - saveinfo["timestamp"]
-            miner_power = float((rnd.uniform(0.0000001, 0.0005) * rnd.randint(25,100)) * miner["cpu"] * miner["gpu"] * miner["ram"] * miner["software"] * 20000)
+            miner_power = float((rnd.uniform(0.0000001, 0.0005) * rnd.randint(25,100)) * miner["cpu"] * miner["gpu"] * miner["ram"] * miner["software"] * 200)
             mined = float(rnd.uniform(0.0000000001, 0.00000005) * stats["miners"] * (stats["ownminers"] ** 3) + rnd.uniform(0.0000000001, 0.00000005 * miner["software"]) * miner_power * (miner_power / 20000))
             player["ethereums"] += mined * off_earn_k
             print(Fore.MAGENTA + Style.BRIGHT + "Offline earnings: %s ETH" % str('{0:.10f}'.format(float(mined * off_earn_k))) + sr)
             success_load = 1
     except Exception as e:
         print(Fore.RED + "Save is missing or corrupted !\nSave version may be old\n%s" % e + sr)
+        data.close()
 
 
 def saveGame(username):
     saveinfo = {"version": str(version), "timestamp": time.time()}
     try:
-        save = open(str(username) + ".bin", "w")
-        save.write("player = " + str(player) + "\n" + "apps = " + str(apps) + "\n" + "stats = " + str(stats) + "\n" + "minehistory = " + str(minehistory) + "\n" + "targets = " + str(targets) + "\n" + "ips = " + str(ips) + "\n" + "miner = " + str(miner) + "\n" + "saveinfo = " + str(saveinfo) + "\n" + "bank = " + str(bank))
+        save = shelve.open(str(username))
+        save["player"] = player
+        save["apps"] = apps
+        save["stats"] = stats
+        save["minehistory"] = minehistory
+        save["targets"] = targets
+        save["ips"] = ips
+        save["miner"] = miner
+        save["saveinfo"] = saveinfo
+        save["bank"] = bank
         save.close()
     except PermissionError:
         print("Save failed ! Please check your read/write permissions\n(If you a Linux or Android user, check chmod or try to launch this game as root)")
+        save.close()
 
 
 def newGame():
