@@ -7,6 +7,11 @@ try:
     from colorama import Fore, Back, Style, init
     from math import pi
     from typing import List, Union
+    from prompt_toolkit.shortcuts import prompt
+    from prompt_toolkit.styles import Style as pStyle
+    from prompt_toolkit import PromptSession
+    from prompt_toolkit.history import InMemoryHistory
+    from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 except Exception as e:
     print("\nPlease, use the commands below to install required modules: ")
     print("""
@@ -17,10 +22,11 @@ except Exception as e:
     exit()
 sr = Style.RESET_ALL
 init()
-version = "0.2.6b"
+version = "0.2.7b"
 print(Fore.GREEN + "Welcome to dHackOS Boot Interface !")
 print("Initializing dimankiev's Hack OS...")
 print(Fore.YELLOW + "Loading configuration...")
+
 companies = ["LG", "Samsung", "Lenovo", "Sony", "nVidia", "FBI", "CIA", "Valve", "Facebook", "Google",
              "Introversion Software", "Tesla Motors", "aaa114-project", "Microsoft", "SoloLearn Inc.", "Pharma",
              "Nestle", "Unknown", "Doogee", "Ethereum", "Ethereum", "Intel", "AMD", "ASIC", "Telegram", "LinkedIn",
@@ -242,7 +248,10 @@ def loadGame(username):
     try:
         with open("saves/" + username + ".md5", "r") as f:
             hashsum = str(f.readline())
-            checksum = md5SaveCheckSum("saves/" + str(username) + ".db",username,0)
+            try:
+                checksum = md5SaveCheckSum("saves/" + str(username) + ".db",username,0)
+            except:
+                success_load = 0
             f.close()
         if hashsum != checksum:
             print(Fore.RED + Style.BRIGHT + "\n[INTEGRITY_CHECK] " + Style.NORMAL + "Save is: " + Style.BRIGHT + "MODIFIED\n" + sr)
@@ -288,7 +297,10 @@ def loadGame(username):
             success_load = 1
     except Exception:
         print(Fore.RED + "Save is missing or corrupted !\nSave version may be old\n" + sr)
-        data.close()
+        try:
+            data.close()
+        except:
+            print("Try again or start new game !")
 
 
 def saveGame(username):
@@ -314,7 +326,7 @@ def saveGame(username):
 
 def newGame():
     while True:
-        global player, apps, stats, minehistory, news, miner, bank
+        global player, apps, stats, minehistory, news, miner, bank, anticheat
         news = {}
         player = {"ethereums": 350.0, "ip": genIP(), "dev": 0, "ipv6": 0, "xp": 0, "sentence": 0}
         player["username"] = str(input("Please enter your username: ").lower())
@@ -334,6 +346,7 @@ def newGame():
             bank = {"balance": 0, "borrowed": 0, "deposit_rate": rnd.randint(5,9), "credit_rate": rnd.randint(9,13), "max_borrow": 300, "borrow_time": 0}
             addInStats("launches", 1, int)
             genTargetsList()
+            anticheat = 1
             break
 
 
@@ -717,6 +730,37 @@ def gameBot():
                 continue
 
 
+def init_dHackOS_Prompt():
+    global cmd_msg, cmd_style
+    cmd_style = pStyle.from_dict({
+    # User input (default text).
+    '':          '#ffffff',
+
+    # Prompt.
+    'username': '#21F521',
+    'at':       'ansigreen',
+    'colon':    '#ffffff',
+    'pound':    '#ffffff',
+    'host':     '#21F521', # bg:#444400
+    'path':     'ansicyan underline'
+    })
+    cmd_msg = [
+        ('class:username', str(player["username"])),
+        ('class:at',       '@'),
+        ('class:host',     str(player["ip"])),
+        ('class:colon',    ':'),
+    ]
+    if player["dev"] == 1 and anticheat == 1:
+        cmd_msg.append(('class:path',     '~/dhackos-dev'))
+        cmd_msg.append(('class:pound',    '# '))
+    elif anticheat == 1:
+        cmd_msg.append(('class:path',     '~/dhackos'))
+        cmd_msg.append(('class:pound',    '# '))
+    else:
+        cmd_msg.append(('class:path',     '~/dhackos-cheat'))
+        cmd_msg.append(('class:pound',    '# '))
+
+
 print(Fore.GREEN + ".::SUCCESS::." + sr)
 while True:
     sol = input("load save or start new session ? (Save/New): ").lower()
@@ -729,6 +773,7 @@ while True:
             print(sr + Fore.GREEN + ".::SUCCESS::.")
             print("Your IP: " + Style.BRIGHT + player["ip"] + sr)
             initGame()
+            init_dHackOS_Prompt()
             break
         else:
             continue
@@ -737,10 +782,12 @@ while True:
         print(sr + Fore.GREEN + ".::SUCCESS::.")
         print("Your IP: " + Style.BRIGHT + str(player["ip"]) + sr)
         initGame()
+        init_dHackOS_Prompt()
         break
     else:
         print(Fore.RED + "Unknown input ! Please, try again" + sr)
 sol = None
+dHackOSprmpt = PromptSession()
 while True:
     try:
         if player["sentence"] == 3:
@@ -757,12 +804,7 @@ while True:
             saveGame(str(player["username"]))
             break
         else:
-            if player["dev"] == 1 and anticheat == 1:
-                cmd = input(player["ip"] + "@" + player["username"] + ":/dev# ").lower()
-            elif anticheat == 1:
-                cmd = input(player["ip"] + "@" + player["username"] + ":~# ").lower()
-            else:
-                cmd = input(player["ip"] + "@" + "Ch3aT3r" + ":/ERR# ").lower()
+            cmd = str(dHackOSprmpt.prompt(cmd_msg, style=cmd_style, auto_suggest=AutoSuggestFromHistory())).lower()
         levelCheck()
         addInStats("symbols", len(cmd), int)
         if cmd == "help":
