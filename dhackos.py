@@ -22,7 +22,7 @@ except Exception as e:
     exit()
 sr = Style.RESET_ALL
 init()
-version = "0.2.7b"
+version = "0.2.8b"
 print(Fore.GREEN + "Welcome to dHackOS Boot Interface !")
 print("Initializing dimankiev's Hack OS...")
 print(Fore.YELLOW + "Loading configuration...")
@@ -78,8 +78,7 @@ cmds = {
     "miner_info": " - shows you your miner components",
     "buy_miner": " - buy one more miner",
     "bank": " - DarkNet Bank CLI",
-    "hilo_game": " - High/Low Bet Game",
-    "lottery": " - Play the lottery"
+    "hilo_game": " - High/Low Bet Game"
 }
 dhackosf_cmds = {
     "help": " - dhackosf cmd list",
@@ -200,48 +199,7 @@ def getVarFromFile(filename):
         data.close()
     return success_sload
 
-def lotteryBot():
-    global lottery, starting_tickets, player
-    while True:
-        try:
-            if lottery == False or lottery == {}:
-                if player["ethereums"] > 10**128:
-                    addings = 10**128
-                else:
-                    addings = player["ethereums"]
-                starting_tickets = rnd.randint(10000000,1000000000000)
-                lottery = {"price": rnd.uniform(0.0001,10),"jackpot": rnd.uniform(100,10000000000000000000 + addings),"tickets": starting_tickets,"p_tickets": 1, "timestamp": time.time()}
-        except:
-            lottery = {}
-            continue
-        else:
-            time.sleep(15)
-            if lottery["tickets"] >= 100000 and (time.time() - lottery["timestamp"]) < 600:
-                lottery["tickets"] -= rnd.randint(1,100000)
-            elif lottery["tickets"] < 100000 and lottery["tickets"] > 0 and (time.time() - lottery["timestamp"]) < 600:
-                lottery["tickets"] -= rnd.randint(1,lottery["tickets"])
-            else:
-                if lottery["tickets"] == 0:
-                    print("\nAll lottery tickets are sold !\nCalculating winner...\n")
-                else:
-                    print("\nLottery is finished !\nCalculating winner...\n")
-                print("One ticket = %s %% of chance\n" % str('{0:.15f}'.format(float((1 / starting_tickets) * 100))))
-                chance = float((lottery["p_tickets"] / starting_tickets) * 100)
-                win_chance = float(rnd.randint(1,1000000) / 10000)
-                win_chance = win_chance + chance
-                print("Your win chance is: %s %%\n" % str('{0:.15f}'.format(float((win_chance) * 100))))
-                if win_chance >= rnd.randint(40,80):
-                    print("You won the jackpot !!!\n")
-                    player["ethereums"] += lottery["jackpot"]
-                    addInStats("eth_earned", lottery["jackpot"], float)
-                else:
-                    print("You lose in the lottery :(")
-                    print("One ticket = %s %% of chance\n" % str('{0:.15f}'.format(float((1 / starting_tickets) * 100))))
-                    chance = float((lottery["p_tickets"] / starting_tickets) * 100)
-                    win_chance = float(rnd.randint(1,1000000) / 10000)
-                    win_chance = win_chance + chance
-                    print("Your win chance was: %s %%\n" % str('{0:.15f}'.format(float((win_chance) * 100))))
-                lottery = {}
+
 def loadGame(username):
     global player, apps, stats, success_load, minehistory, targets, ips, miner, bank, anticheat
     success_load = 0
@@ -270,7 +228,6 @@ def loadGame(username):
             miner = data['miner']
             bank = data['bank']
             saveinfo = data['saveinfo']
-            lottery = data['lottery']
             data.close()
         else:
             data.close()
@@ -316,12 +273,15 @@ def saveGame(username):
         save["miner"] = miner
         save["saveinfo"] = saveinfo
         save["bank"] = bank
-        save["lottery"] = lottery
         save.close()
         md5SaveCheckSum("saves/" + str(username) + ".db",username,1)
-    except PermissionError:
-        print("Save failed ! Please check your read/write permissions\n(If you a Linux or Android user, check chmod or try to launch this game as root)")
-        save.close()
+    except:
+        try:
+            with open(str(username) + ".db", "w+") as f:
+                f.close()
+        except PermissionError:
+            print("Save failed ! Please check your read/write permissions\n(If you a Linux or Android user, check chmod or try to launch this game as root)")
+            save.close()
 
 
 def newGame():
@@ -1401,53 +1361,6 @@ while True:
                     break
                 else:
                     print(Fore.RED + "Unknown input !" + Fore.GREEN)
-        elif cmd == "lottery":
-            if lottery == False or lottery == {}:
-                if player["ethereums"] > 10**128:
-                    addings = 10**128
-                else:
-                    addings = player["ethereums"]
-                starting_tickets = rnd.randint(10000000,1000000000000)
-                lottery = {"price": rnd.uniform(0.0001,10),"jackpot": rnd.uniform(100,10000000000000000000 + addings),"tickets": starting_tickets,"p_tickets": 1, "timestamp": time.time()}
-            while True:
-                print(Fore.YELLOW + Style.BRIGHT + "Tickets: %s\nTickets left: %s\nYour tickets: %s\nTicket price (per one): %s ETH\nOne ticket = %s %% of chance\nYour win chance: %s %%\n------\nJackpot: %s ETH\n------\nTo stop the program type exit" % (str(starting_tickets), str(lottery["tickets"]), str(lottery["p_tickets"]), str('{0:.5f}'.format(lottery["price"])), str('{0:.15f}'.format((1 / starting_tickets) * 100)), str('{0:.15f}'.format(float((lottery["p_tickets"] / starting_tickets) * 100))), str('{0:.5f}'.format(lottery["jackpot"]))))
-                lcmd = str(input("How many tickets you want to buy ?: ")).lower()
-                if lcmd == "exit":
-                    print(Fore.RED + "Exiting..." + sr)
-                    break
-                else:
-                    try:
-                        lcmd = int(lcmd)
-                    except:
-                        print(Fore.RED + "Unknown input !" + sr)
-                        continue
-                if lcmd > 0:
-                    if lcmd <= lottery["tickets"]:
-                        print("It will cost you: %s ETH" % str(lottery["price"] * lcmd))
-                        lot_buy = str(input("Are you sure ?(Yes/No): ")).lower()
-                        if lot_buy == "y" or lot_buy == "yes":
-                            if (lottery["price"] * lcmd) <= player["ethereums"]:
-                                if lcmd > lottery["tickets"]:
-                                    player["ethereums"] -= lottery["price"] * lottery["tickets"]
-                                    lottery["tickets"] = 0
-                                    lottery["p_tickets"] += lottery["tickets"]
-                                    print(Fore.GREEN + "You bought all tickets !" + sr)
-                                elif lottery["tickets"] == 0:
-                                    print(Fore.GREEN + "Tickets are ended !" + sr)
-                                else:
-                                    player["ethereums"] -= lcmd * lottery["tickets"]
-                                    lottery["tickets"] -= lcmd
-                                    lottery["p_tickets"] += lcmd
-                                    print(Fore.GREEN + "You bought %s tickets" % str(lcmd) + sr)
-                            else:
-                                print(Fore.RED + "Insufficient balance !" + sr)
-                        else:
-                            print(Fore.RED + "Unknown input !" + sr)
-                    else:
-                        print(Fore.RED + "There is no %s tickets !" % str(lcmd) + sr)
-                else:
-                    print(Fore.RED + "Invalid value !" + sr)
-                continue
         else:
             print(Fore.RED + "Unknown input. Please try again" + sr)
     except KeyboardInterrupt:
