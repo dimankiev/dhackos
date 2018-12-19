@@ -22,7 +22,7 @@ except Exception as e:
     exit()
 sr = Style.RESET_ALL
 init()
-version = "0.2.8b"
+version = "0.2.9b"
 print(Fore.GREEN + "Welcome to dHackOS Boot Interface !")
 print("Initializing dimankiev's Hack OS...")
 print(Fore.YELLOW + "Loading configuration...")
@@ -561,9 +561,6 @@ def initGame():
         proxy_hunter = threading.Thread(target=proxyKill)
         proxy_hunter.daemon = True
         proxy_hunter.start()
-        lottery_bot = threading.Thread(target=lotteryBot)
-        lottery_bot.daemon = True
-        lottery_bot.start()
 
 
 def mineEthereum():
@@ -719,6 +716,30 @@ def init_dHackOS_Prompt():
     else:
         cmd_msg.append(('class:path',     '~/dhackos-cheat'))
         cmd_msg.append(('class:pound',    '# '))
+
+
+def init_dHackOSf_Prompt(username,ip):
+    global cmdf_msg, cmdf_style
+    cmdf_style = pStyle.from_dict({
+    # User input (default text).
+    '':          '#ffffff',
+
+    # Prompt.
+    'username': '#21F521',
+    'at':       'ansigreen',
+    'colon':    '#ffffff',
+    'pound':    '#ffffff',
+    'host':     '#21F521', # bg:#444400
+    'path':     'ansicyan underline'
+    })
+    cmdf_msg = [
+        ('class:username', str(username)),
+        ('class:at',       '@'),
+        ('class:host',     str(ip)),
+        ('class:colon',    ':'),
+    ]
+    cmdf_msg.append(('class:path',     '~/'))
+    cmdf_msg.append(('class:pound',    '# '))
 
 
 print(Fore.GREEN + ".::SUCCESS::." + sr)
@@ -884,11 +905,15 @@ while True:
                                 print(Fore.RED + "Wrong IP entered or target list is empty !\n" + Fore.YELLOW + "Start scan to find a new target list" + sr)
                                 break
                     print("dHackOSf is initializing !\nPlease wait..." + Fore.GREEN)
+                    dHackOSf_prmpt = None
+                    dHackOSf_prmpt = PromptSession()
+                    init_dHackOSf_Prompt("dhackosf",df_status)
                     time.sleep(1)
                 else:
                     if scan_done == True and fw_bypassed == True and modules_loaded == True and connected == True:
                         all_done = True
-                    df_cmd = input("dhackosf (%s) > " % df_status).lower()
+                        init_dHackOSf_Prompt("dhackosf",df_status)
+                    df_cmd = str(dHackOSf_prmpt.prompt(cmdf_msg, style=cmdf_style, auto_suggest=AutoSuggestFromHistory())).lower()
                     if df_cmd == "help":
                         showVoc(dhackosf_cmds, None, None, Fore.YELLOW)
                         print(Fore.RED + "Don't forget to load dhackosf modules" + Fore.GREEN + Style.BRIGHT)
@@ -972,8 +997,11 @@ while True:
                             trace.daemon = True
                             trace.start()
                             print(Fore.YELLOW + "You have " + str(tracing) + "sec before local admin trace you ! (Connection will be lost and ETHs seized by FBI)" + Fore.GREEN)
+                            dHackOSf_prmpt = None
+                            dHackOSf_prmpt = PromptSession()
+                            init_dHackOSf_Prompt("root",df_status)
                             while True:
-                                tcmd = input(target["ip"] + "@root:/# ").lower()
+                                tcmd = str(dHackOSf_prmpt.prompt(cmdf_msg, style=cmdf_style, auto_suggest=AutoSuggestFromHistory())).lower()
                                 if tracing == 0 or tracing <= 1:
                                     print(Fore.RED + "Connection was refused by local administrator...\nAttempting to revive remote session...")
                                     time.sleep(1)
