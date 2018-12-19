@@ -4,9 +4,9 @@ Hacker Simulator 2 (dHackOS)
 
 Written using Python 3.6.
 
-Bots, subnets, interesting hacking process, miners, and a lot of interesting things included in this game.
+Bots, subnets, tracing, upgrades, comfortable prompt, miners, and a lot of interesting things included in this game.
 
-Actual version: 0.2.7b
+Actual version: 0.2.9b
 
 Installation (Android)
 -----------------------
@@ -24,6 +24,7 @@ Installation (Android)
    ```
    apt-get install python-dev clang libcrypt-dev
    pip install psutil
+   pip install prompt_toolkit
    pip install platform
    pip install colorama
    pip install progressbar2
@@ -45,6 +46,7 @@ Installation (Windows)
 2. Install required modules by commands below:
    ```
    pip install psutil
+   pip install prompt_toolkit
    pip install platform
    pip install colorama
    pip install progressbar2
@@ -94,13 +96,14 @@ Getting started
     miner_info - shows you your miner components
     buy_miner - buy one more miner
     bank - DarkNet Bank CLI
+    hilo_game - High/Low Bet Game
    ```
 
-3. Use scan to find first targets.
+3. Use `scan` to find first targets.
 
 4. Then, select and IP and remember it.
 
-5. Launch dHackOS Exploitation Framework by `dhackosf` command, then enter IP that you remembered
+5. Launch dHackOS Exploitation Framework by `dhackosf` command, then enter IP that you remembered. dHackOSf will be launched, then type `help` to see the dHackOSf commands list.
 
 6. Don't forget to upgrade your apps
 
@@ -114,6 +117,7 @@ Requirements
 2. Install required modules by commands below:
    ```
    pip install psutil
+   pip install prompt_toolkit
    pip install platform
    pip install colorama
    pip install progressbar2
@@ -125,6 +129,9 @@ Links
 ----------
 - [dimankiev (Telegram)](https://t.me/dimankiev)
 - [dhackos (Telegram)](https://t.me/dhackos)
+- [dhackos RU (Telegram group)](https://t.me/dhackos_ru)
+- [dhackos EN (Telegram group)](https://t.me/dhackos_en)
+- [dhackos support (Telegram)](https://t.me/dhackos_bot)
 - [aaa114-project](http://aaa114-project.tk)
 - [dimankiev (E-Mail)](mailto:dimankiev@gmail.com)
 
