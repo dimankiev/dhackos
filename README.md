@@ -6,7 +6,7 @@ Written using Python 3.6.
 
 Bots, subnets, tracing, upgrades, comfortable prompt, miners, and a lot of interesting things included in this game.
 
-Actual version: 0.2.9b
+Actual version: 0.2.9b-r2
 
 Installation (Android)
 -----------------------
