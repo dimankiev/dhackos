@@ -4,6 +4,7 @@ try:
     import threading, progressbar, time, shelve, hashlib, base64, string, datetime, platform
     from psutil import *
     from os import stat, remove
+    import os
     from colorama import Fore, Back, Style, init
     from math import pi
     from typing import List, Union
@@ -277,8 +278,19 @@ def saveGame(username):
         md5SaveCheckSum("saves/" + str(username) + ".db",username,1)
     except:
         try:
-            with open(str(username) + ".db", "w+") as f:
-                f.close()
+            os.mkdir("./saves")
+            save = shelve.open("saves/" + str(username))
+            save["player"] = player
+            save["apps"] = apps
+            save["stats"] = stats
+            save["minehistory"] = minehistory
+            save["targets"] = targets
+            save["ips"] = ips
+            save["miner"] = miner
+            save["saveinfo"] = saveinfo
+            save["bank"] = bank
+            save.close()
+            md5SaveCheckSum("saves/" + str(username) + ".db",username,1)
         except PermissionError:
             print("Save failed ! Please check your read/write permissions\n(If you a Linux or Android user, check chmod or try to launch this game as root)")
             save.close()
@@ -744,7 +756,11 @@ def init_dHackOSf_Prompt(username,ip):
 
 print(Fore.GREEN + ".::SUCCESS::." + sr)
 while True:
-    sol = input("load save or start new session ? (Save/New): ").lower()
+    try:
+        sol = input("load save or start new session ? (Save/New): ").lower()
+    except KeyboardInterrupt:
+        print(Fore.RED + "\nExiting...\nGoodbye :)" + sr)
+        exit()
     if sol == "sav" or sol == "save" or sol == "sv" or sol == "sve":
         print(Fore.GREEN + "[dHackOS LOGIN]" + sr)
         username = str(input("Please enter your username: ").lower())
