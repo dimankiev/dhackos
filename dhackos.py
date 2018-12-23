@@ -1,7 +1,7 @@
 try:
     import getpass as pwd
     import random as rnd
-    import threading, progressbar, time, shelve, hashlib, base64, string, datetime, platform
+    import threading, progressbar, time, shelve, hashlib, base64, string, datetime, platform, math
     from psutil import *
     from os import stat, remove
     import os
@@ -23,7 +23,8 @@ except Exception as e:
     exit()
 sr = Style.RESET_ALL
 init()
-version = "0.2.9b"
+from prog.lanhunter import lanhunt
+version = "0.3.0b"
 print(Fore.GREEN + "Welcome to dHackOS Boot Interface !")
 print("Initializing dimankiev's Hack OS...")
 print(Fore.YELLOW + "Loading configuration...")
@@ -79,7 +80,9 @@ cmds = {
     "miner_info": " - shows you your miner components",
     "buy_miner": " - buy one more miner",
     "bank": " - DarkNet Bank CLI",
-    "hilo_game": " - High/Low Bet Game"
+    "hilo_game": " - High/Low Bet Game",
+    "lanhunt": " - LanHunt Drone System CLI (BETA)",
+    "miner_cfg": " - Switch the miner power off/on"
 }
 dhackosf_cmds = {
     "help": " - dhackosf cmd list",
@@ -302,6 +305,9 @@ def newGame():
         news = {}
         player = {"ethereums": 350.0, "ip": genIP(), "dev": 0, "ipv6": 0, "xp": 0, "sentence": 0}
         player["username"] = str(input("Please enter your username: ").lower())
+        if player["username"] == "debug":
+            print(Fore.RED + "Username DEBUG is not available !" + sr)
+            continue
         player["password"] = str(pwd.getpass("Please enter your password: ").lower())
         if len(player["password"]) < 6:
             print(
@@ -379,6 +385,9 @@ def showVoc(vocabulary, description, additional, color):
             if param == "k":
                 print(color + Style.BRIGHT + description[param] + Style.NORMAL + "DHACK26" + str(
                     vocabulary[param]) * 2 + sr)
+            elif param == "eth_earned":
+                print(color + Style.BRIGHT + description[param] + Style.NORMAL + " " + str(
+                    '{0:.12f}'.format(vocabulary[param])) + sr)
             else:
                 print(color + Style.BRIGHT + description[param] + Style.NORMAL + " " + str(vocabulary[param]) + sr)
     else:
@@ -408,7 +417,10 @@ def md5SaveCheckSum(fname,username,action):
 
 def genTarget(k, ip):
     target = {}
-    min = (apps["bruteforce"] + apps["sdk"] + apps["ipspoofing"] + apps["dechyper"]) // 4
+    if player["username"] != "debug":
+        min = (apps["bruteforce"] + apps["sdk"] + apps["ipspoofing"] + apps["dechyper"]) // 4
+    else:
+        min = 1000
     if k == 1:
         target["firewall"] = min
     else:
@@ -547,8 +559,9 @@ def searchTargets(is_bot):
 
 
 def initGame():
-    global game_started, target, gentargets, news_show, player_target_list, miner_cl, tbr, game_bot, tracing
+    global game_started, target, gentargets, news_show, player_target_list, miner_cl, tbr, game_bot, tracing, miner_power_status
     game_started = 0
+    miner_power_status = "on"
     if game_started == 0:
         game_started = 1
         target = {}
@@ -576,74 +589,75 @@ def initGame():
 
 
 def mineEthereum():
-    global minehistory, minelog, mined, miner_enroll
+    global minehistory, minelog, mined, miner_enroll, miner_power_status
     miner_enroll = 0
     minehistory = {"1": "", "2": "", "3": "", "4": "", "5": "", "6": "", "7": "", "8": "", "9": "", "10": ""}
     minelog = 11
     firststart = 1
     while True:
-        try:
-            time.sleep(1)
-            if stats["ownminers"] < 4 and stats["ownminers"] > 1:
-                collective_power = stats["ownminers"] * rnd.uniform(25,100)
-                #print("Collective Power Level: 1.2")
-            elif stats["ownminers"] >= 4 and stats["ownminers"] <= 7:
-                collective_power = stats["ownminers"] * rnd.uniform(50,150)
-                #print("Collective Power Level: 2")
-            elif stats["ownminers"] > 7 and stats["ownminers"] <= 15:
-                collective_power = stats["ownminers"] * rnd.uniform(75,175)
-                #print("Collective Power Level: 3")
-            elif stats["ownminers"] > 15 and stats["ownminers"] <= 25:
-                collective_power = stats["ownminers"] * rnd.uniform(100,250) ** 2
-                #print("Collective Power Level: 4")
-            elif stats["ownminers"] > 35 and stats["ownminers"] <= 45:
-                collective_power = stats["ownminers"] * rnd.uniform(175,275)
-                #print("Collective Power Level: 5")
-            elif stats["ownminers"] > 45 and stats["ownminers"] <= 50:
-                collective_power = stats["ownminers"] * rnd.uniform(225,325)
-                #print("Collective Power Level: 6")
-            elif stats["ownminers"] > 50 and stats["ownminers"] <= 65:
-                collective_power = stats["ownminers"] * rnd.uniform(500,1000) ** 2
-                #print("Collective Power Level: 7")
-            elif stats["ownminers"] > 75 and stats["ownminers"] <= 90:
-                collective_power = stats["ownminers"] * rnd.uniform(1250,3000)
-                #print("Collective Power Level: 8")
-            elif stats["ownminers"] > 90 and stats["ownminers"] <= 125:
-                collective_power = stats["ownminers"] * rnd.uniform(3000,7000) ** 2
-                #print("Collective Power Level: 9")
-            elif stats["ownminers"] == 1:
-                collective_power = float(1)
-                #print("Collective Power Level: 0")
-            elif stats["ownminers"] == 2:
-                collective_power = rnd.uniform(50,125)
-                #print("Collective Power Level: 1")
-            else:
-                collective_power = float((stats["ownminers"] ** (stats["ownminers"] / 500)) * rnd.uniform(10000 * (stats["ownminers"]/100),50000 * (stats["ownminers"]/100)) ** rnd.randint(2,5))
-                #print("Collective Power Level: 10")
-        except:
-            collective_power = 10**21
-        miner_power = float((rnd.uniform(0.0000001, 0.0005) * rnd.randint(25,100)) * miner["cpu"] * miner["gpu"] * miner["ram"] * miner["software"] * collective_power)
-        mined = float(rnd.uniform(0.0000000001, 0.00000005) * stats["miners"] * (stats["ownminers"] ** 3) + rnd.uniform(0.0000000001, 0.00000005 * miner["software"]) * miner_power * (miner_power / collective_power))
-        #print("Collective Power: %s | Miner Power: %s | Mined: %s" % (str(collective_power),str(miner_power),str(mined)))
-        now = datetime.datetime.now()
-        player["ethereums"] = player["ethereums"] + mined
-        addInStats("eth_earned", mined, float)
-        if miner_enroll == 1:
-            continue
-        elif miner_enroll == 0 and game_started == 1:
-            if minelog == 10 and firststart == 0:
-                minehistory = {"1": minehistory["2"], "2": minehistory["3"], "3": minehistory["4"], "4": minehistory["5"], "5": minehistory["6"], "6": minehistory["7"], "7": minehistory["8"], "8": minehistory["9"], "9": minehistory["10"], "10": ""}
-                minehistory[str(minelog)] = str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "] Mined: " + str('{0:.10f}'.format(mined)) + " ETH")
-            else:
-                if minelog == 1:
-                    minelog = 10
-                    firststart = 0
+        time.sleep(1)
+        if miner_power_status == "on":
+            try:
+                if stats["ownminers"] < 4 and stats["ownminers"] > 1:
+                    collective_power = stats["ownminers"] * rnd.uniform(25,100)
+                    #print("Collective Power Level: 1.2")
+                elif stats["ownminers"] >= 4 and stats["ownminers"] <= 7:
+                    collective_power = stats["ownminers"] * rnd.uniform(50,150)
+                    #print("Collective Power Level: 2")
+                elif stats["ownminers"] > 7 and stats["ownminers"] <= 15:
+                    collective_power = stats["ownminers"] * rnd.uniform(75,175)
+                    #print("Collective Power Level: 3")
+                elif stats["ownminers"] > 15 and stats["ownminers"] <= 25:
+                    collective_power = stats["ownminers"] * rnd.uniform(100,250) ** 2
+                    #print("Collective Power Level: 4")
+                elif stats["ownminers"] > 35 and stats["ownminers"] <= 45:
+                    collective_power = stats["ownminers"] * rnd.uniform(175,275)
+                    #print("Collective Power Level: 5")
+                elif stats["ownminers"] > 45 and stats["ownminers"] <= 50:
+                    collective_power = stats["ownminers"] * rnd.uniform(225,325)
+                    #print("Collective Power Level: 6")
+                elif stats["ownminers"] > 50 and stats["ownminers"] <= 65:
+                    collective_power = stats["ownminers"] * rnd.uniform(500,1000) ** 2
+                    #print("Collective Power Level: 7")
+                elif stats["ownminers"] > 75 and stats["ownminers"] <= 90:
+                    collective_power = stats["ownminers"] * rnd.uniform(1250,3000)
+                    #print("Collective Power Level: 8")
+                elif stats["ownminers"] > 90 and stats["ownminers"] <= 125:
+                    collective_power = stats["ownminers"] * rnd.uniform(3000,7000) ** 2
+                    #print("Collective Power Level: 9")
+                elif stats["ownminers"] == 1:
+                    collective_power = float(1)
+                    #print("Collective Power Level: 0")
+                elif stats["ownminers"] == 2:
+                    collective_power = rnd.uniform(50,125)
+                    #print("Collective Power Level: 1")
+                else:
+                    collective_power = float((stats["ownminers"] ** (stats["ownminers"] / 500)) * rnd.uniform(10000 * (stats["ownminers"]/100),50000 * (stats["ownminers"]/100)) ** rnd.randint(2,5))
+                    #print("Collective Power Level: 10")
+            except:
+                collective_power = 10**21
+            miner_power = float((rnd.uniform(0.0000001, 0.0005) * rnd.randint(25,100)) * miner["cpu"] * miner["gpu"] * miner["ram"] * miner["software"] * collective_power)
+            mined = float(rnd.uniform(0.0000000001, 0.00000005) * stats["miners"] * (stats["ownminers"] ** 3) + rnd.uniform(0.0000000001, 0.00000005 * miner["software"]) * miner_power * (miner_power / collective_power))
+            #print("Collective Power: %s | Miner Power: %s | Mined: %s" % (str(collective_power),str(miner_power),str(mined)))
+            now = datetime.datetime.now()
+            player["ethereums"] = player["ethereums"] + mined
+            addInStats("eth_earned", mined, float)
+            if miner_enroll == 1:
+                continue
+            elif miner_enroll == 0 and game_started == 1:
+                if minelog == 10 and firststart == 0:
+                    minehistory = {"1": minehistory["2"], "2": minehistory["3"], "3": minehistory["4"], "4": minehistory["5"], "5": minehistory["6"], "6": minehistory["7"], "7": minehistory["8"], "8": minehistory["9"], "9": minehistory["10"], "10": ""}
                     minehistory[str(minelog)] = str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "] Mined: " + str('{0:.10f}'.format(mined)) + " ETH")
                 else:
-                    minelog -= 1
-                    minehistory[str(minelog)] = str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "] Mined: " + str('{0:.10f}'.format(mined)) + " ETH")
-        else:
-            continue
+                    if minelog == 1:
+                        minelog = 10
+                        firststart = 0
+                        minehistory[str(minelog)] = str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "] Mined: " + str('{0:.10f}'.format(mined)) + " ETH")
+                    else:
+                        minelog -= 1
+                        minehistory[str(minelog)] = str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "] Mined: " + str('{0:.10f}'.format(mined)) + " ETH")
+            else:
+                continue
 
 
 def addNews(stolen,target):
@@ -749,9 +763,9 @@ def init_dHackOSf_Prompt(username,ip):
         ('class:at',       '@'),
         ('class:host',     str(ip)),
         ('class:colon',    ':'),
+        ('class:path',     '~/'),
+        ('class:pound',    '# ')
     ]
-    cmdf_msg.append(('class:path',     '~/'))
-    cmdf_msg.append(('class:pound',    '# '))
 
 
 print(Fore.GREEN + ".::SUCCESS::." + sr)
@@ -776,6 +790,21 @@ while True:
             continue
     elif sol == "new" or sol == "nw" or sol == "nwe" or sol == "n":
         newGame()
+        print(sr + Fore.GREEN + ".::SUCCESS::.")
+        print("Your IP: " + Style.BRIGHT + str(player["ip"]) + sr)
+        initGame()
+        init_dHackOS_Prompt()
+        break
+    elif sol == "debug":
+        player = {"ethereums": 999999999, "ip": "127.0.0.1", "dev": 0, "ipv6": 0, "xp": 999999999, "sentence": 0, "username": "debug", "password": md5("debug", "dhackos")}
+        apps = {"scanner": 999999999, "spam": 999999999, "bruteforce": 999999999, "sdk": 999999999, "ipspoofing": 999999999, "dechyper": 999999999}
+        stats = {"eth_earned": 999999999, "shacked": 999999999, "xp": 999999999, "rep": 999999999, "scans": 999999999, "level": 999999999, "symbols": 999999999,
+                 "launches": 999999999, "miners": 999999999, "ownminers": 999999999, "proxy": 999999999}
+        miner = {"cpu": 10, "gpu": 10, "ram": 10, "software": 10}
+        bank = {"balance": 999999999, "borrowed": 0, "deposit_rate": rnd.randint(5,9), "credit_rate": rnd.randint(9,13), "max_borrow": 300, "borrow_time": 0}
+        addInStats("launches", 1, int)
+        genTargetsList()
+        anticheat = 1
         print(sr + Fore.GREEN + ".::SUCCESS::.")
         print("Your IP: " + Style.BRIGHT + str(player["ip"]) + sr)
         initGame()
@@ -1315,9 +1344,17 @@ while True:
                             break
                 elif bcmd == "deposit":
                     while True:
-                        print(Fore.YELLOW + "\nYour current ETH balance: %s ETH\nBank balance: %s ETH" % (str(str('{0:.6f}'.format(player["ethereums"]))),str(str('{0:.6f}'.format(bank["balance"])))) + sr)
+                        print(Fore.YELLOW + "\nYour current ETH balance: %s ETH\nBank balance: %s ETH\nType 'all' to deposit all ETH" % (str(str('{0:.6f}'.format(player["ethereums"]))),str(str('{0:.6f}'.format(bank["balance"])))) + sr)
                         try:
-                            deposit = float(input("How many ETH you want to deposit ?(Numeric): "))
+                            try:
+                                deposit = input("How many ETH you want to deposit ?(Numeric): ")
+                                deposit = float(deposit)
+                            except:
+                                if str(deposit) == "all":
+                                    deposit = float(player["ethereums"])
+                                else:
+                                    print(Fore.RED + "Unknown input !" + sr)
+                                    break
                             if deposit <= player["ethereums"] and bank["borrowed"] == 0:
                                 bank["balance"] += deposit
                                 player["ethereums"] -= deposit
@@ -1405,6 +1442,18 @@ while True:
                     break
                 else:
                     print(Fore.RED + "Unknown input !" + Fore.GREEN)
+        elif cmd == "lanhunt":
+            player["ethereums"] = lanhunt.mainLanHuntCLI()
+        elif cmd == "debug":
+            f = open("variables_dbg_out.txt", "w")
+            f.write(str("\n=========LOCALS=========\n" + str(locals()) + "\n" + "=========GLOBALS=========\n" + str(globals()) + "\n" + "=========DIR=========\n" + str(dir())))
+            f.close()
+        elif cmd == "miner_cfg":
+            cfgcfg = str(input("Miner (on/off): ")).lower()
+            if cfgcfg == "off":
+                miner_power_status = "off"
+            else:
+                miner_power_status = "on"
         else:
             print(Fore.RED + "Unknown input. Please try again" + sr)
     except KeyboardInterrupt:
