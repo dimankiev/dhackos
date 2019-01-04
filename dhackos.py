@@ -217,7 +217,7 @@ def loadGame(username):
         with open(path + username + ".md5", "r") as f:
             hashsum = str(f.readline())
             try:
-                checksum = md5SaveCheckSum(path + str(username) + ".db",username,0)
+                checksum = md5SaveCheckSum("saves/" + str(username) + ".db",username,0)
             except:
                 success_load = 0
             f.close()
@@ -291,7 +291,7 @@ def saveGame(username):
         save["saveinfo"] = saveinfo
         save["bank"] = bank
         save.close()
-        md5SaveCheckSum(path + str(username) + ".db",username,1)
+        md5SaveCheckSum("saves/" + str(username) + ".db",username,1)
     except:
         try:
             os.mkdir("./saves")
@@ -306,7 +306,7 @@ def saveGame(username):
             save["saveinfo"] = saveinfo
             save["bank"] = bank
             save.close()
-            md5SaveCheckSum(path + str(username) + ".db",username,1)
+            md5SaveCheckSum("saves/" + str(username) + ".db",username,1)
         except PermissionError:
             print("Save failed ! Please check your read/write permissions\n(If you a Linux or Android user, check chmod or try to launch this game as root)")
             save.close()
