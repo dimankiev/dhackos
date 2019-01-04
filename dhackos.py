@@ -24,7 +24,7 @@ except Exception as e:
 sr = Style.RESET_ALL
 init()
 from prog.lanhunter import lanhunt
-version = "0.3.0b"
+version = "0.3.1b"
 print(Fore.GREEN + "Welcome to dHackOS Boot Interface !")
 print("Initializing dimankiev's Hack OS...")
 print(Fore.YELLOW + "Loading configuration...")
@@ -207,16 +207,22 @@ def getVarFromFile(filename):
 def loadGame(username):
     global player, apps, stats, success_load, minehistory, targets, ips, miner, bank, anticheat
     success_load = 0
+    if platform.system() == "Windows":
+        path = "saves\\"
+    elif platform.system() == "Linux":
+        path = "saves/"
+    else:
+        path = "saves/"
     try:
-        with open("saves/" + username + ".md5", "r") as f:
+        with open(path + username + ".md5", "r") as f:
             hashsum = str(f.readline())
             try:
-                checksum = md5SaveCheckSum("saves/" + str(username) + ".db",username,0)
+                checksum = md5SaveCheckSum(path + str(username) + ".db",username,0)
             except:
                 success_load = 0
             f.close()
         if hashsum != checksum:
-            print(Fore.RED + Style.BRIGHT + "\n[INTEGRITY_CHECK] " + Style.NORMAL + "Save is: " + Style.BRIGHT + "MODIFIED\n" + sr)
+            print(Fore.GREEN + Style.BRIGHT + "\n[INTEGRITY_CHECK] " + Style.NORMAL + "Save is: " + Style.BRIGHT + Fore.RED + "MODIFIED\n" + sr)
             anticheat = 0
         else:
             print(Fore.GREEN + Style.BRIGHT + "\n[INTEGRITY_CHECK] " + Style.NORMAL + "Save is: " + Style.BRIGHT + "OK\n" + sr)
@@ -265,9 +271,16 @@ def loadGame(username):
 
 
 def saveGame(username):
+    global player, apps, stats, minehistory, targets, ips, miner, saveinfo, bank
     saveinfo = {"version": str(version), "timestamp": time.time()}
+    if platform.system() == "Windows":
+        path = "saves\\"
+    elif platform.system() == "Linux":
+        path = "saves/"
+    else:
+        path = "saves/"
     try:
-        save = shelve.open("saves/" + str(username))
+        save = shelve.open(path + str(username))
         save["player"] = player
         save["apps"] = apps
         save["stats"] = stats
@@ -278,11 +291,11 @@ def saveGame(username):
         save["saveinfo"] = saveinfo
         save["bank"] = bank
         save.close()
-        md5SaveCheckSum("saves/" + str(username) + ".db",username,1)
+        md5SaveCheckSum(path + str(username) + ".db",username,1)
     except:
         try:
             os.mkdir("./saves")
-            save = shelve.open("saves/" + str(username))
+            save = shelve.open(path + str(username))
             save["player"] = player
             save["apps"] = apps
             save["stats"] = stats
@@ -293,7 +306,7 @@ def saveGame(username):
             save["saveinfo"] = saveinfo
             save["bank"] = bank
             save.close()
-            md5SaveCheckSum("saves/" + str(username) + ".db",username,1)
+            md5SaveCheckSum(path + str(username) + ".db",username,1)
         except PermissionError:
             print("Save failed ! Please check your read/write permissions\n(If you a Linux or Android user, check chmod or try to launch this game as root)")
             save.close()
@@ -303,7 +316,8 @@ def newGame():
     while True:
         global player, apps, stats, minehistory, news, miner, bank, anticheat
         news = {}
-        player = {"ethereums": 350.0, "ip": genIP(), "dev": 0, "ipv6": 0, "xp": 0, "sentence": 0}
+        player = {"ethereums": 350.0, "ip": "127.0.0.1", "dev": 0, "ipv6": 0, "xp": 0, "sentence": 0}
+        player["ip"] = str(genIP())
         player["username"] = str(input("Please enter your username: ").lower())
         if player["username"] == "debug":
             print(Fore.RED + "Username DEBUG is not available !" + sr)
@@ -527,11 +541,11 @@ def changeIPv(ipv):
             print("Connecting to IPv6 network...")
         for i in progressbar.progressbar(range(100)): time.sleep(0.02)
         player["ip"] = genIP()
-        bot["ip"] = genIP()
         print(".::SUCCESS::." + sr)
         print(Fore.GREEN + "Your IP: " + Style.BRIGHT + str(player["ip"]) + sr)
     else:
         print(Fore.RED + ".::ABORTED::." + sr)
+
 
 def searchTargets(is_bot):
     global player_target_list, bot_target_list, bot_target
@@ -775,7 +789,7 @@ while True:
     except KeyboardInterrupt:
         print(Fore.RED + "\nExiting...\nGoodbye :)" + sr)
         exit()
-    if sol == "sav" or sol == "save" or sol == "sv" or sol == "sve":
+    if sol == "sav" or sol == "save" or sol == "sv" or sol == "sve" or sol == "s":
         print(Fore.GREEN + "[dHackOS LOGIN]" + sr)
         username = str(input("Please enter your username: ").lower())
         print("Please wait..." + Fore.GREEN + "\n.::LOADING::." + sr)
