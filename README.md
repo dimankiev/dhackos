@@ -6,7 +6,7 @@ Written using Python 3.6.
 
 Bots, subnets, tracing, upgrades, comfortable prompt, miners, and a lot of interesting things included in this game.
 
-Actual version: 0.2.9b-r2
+Actual version: 0.3.1b
 
 Installation (Android)
 -----------------------
@@ -142,7 +142,7 @@ Alpha-testers
 License
 ---------
 Hacker Simulator is BSD-3-Clause Licensed  
-Copyright © 2018 dimankiev (http://aaa114-project.tk)
+Copyright © 2018-2019 dimankiev (http://aaa114-project.tk)
 
 [1]: https://github.com/dimankiev/dhackos
 [2]: https://termux.com/
