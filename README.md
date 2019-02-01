@@ -2,6 +2,7 @@ Hacker Simulator 2 (dHackOS)
 =============
 [Hacker Simulator 2][1] - Reincarnation of [Hacker Simulator 1](https://github.com/dimankiev/hacker_sim)
 
+__Development paused__
 Written using Python 3.6.
 
 Bots, subnets, tracing, upgrades, comfortable prompt, miners, and a lot of interesting things included in this game.
@@ -132,7 +133,7 @@ Links
 - [dhackos RU (Telegram group)](https://t.me/dhackos_ru)
 - [dhackos EN (Telegram group)](https://t.me/dhackos_en)
 - [dhackos support (Telegram)](https://t.me/dhackos_bot)
-- [aaa114-project](http://aaa114-project.tk)
+- [aaa114-project](http://aaa114-project.pp.ua)
 - [dimankiev (E-Mail)](mailto:dimankiev@gmail.com)
 
 Alpha-testers
@@ -142,7 +143,7 @@ Alpha-testers
 License
 ---------
 Hacker Simulator is BSD-3-Clause Licensed  
-Copyright © 2018-2019 dimankiev (http://aaa114-project.tk)
+Copyright © 2018-2019 dimankiev (http://aaa114-project.pp.ua)
 
 [1]: https://github.com/dimankiev/dhackos
 [2]: https://termux.com/
