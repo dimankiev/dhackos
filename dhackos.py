@@ -6,6 +6,7 @@ try:
     from os import stat, remove
     import os
     import json
+    import traceback
     from colorama import Fore, Back, Style, init
     from math import pi
     from typing import List, Union
@@ -139,7 +140,7 @@ def genIP():
 def getVarFromFile(filename):
     global success_sload, data
     try:
-        data = shelve.open("saves/" + filename)
+        data = shelve.open("saves/" + filename + ".db")
         success_sload = 1
     except:
         success_sload = 0
@@ -148,7 +149,7 @@ def getVarFromFile(filename):
 
 
 def loadGame(username):
-    global player, apps, stats, success_load, minehistory, targets, ips, miner, bank, anticheat
+    global player, data, apps, stats, success_load, minehistory, targets, ips, miner, bank, anticheat
     success_load = 0
     if platform.system() == "Windows":
         path = "saves\\"
@@ -160,7 +161,7 @@ def loadGame(username):
         with open(path + username + ".md5", "r") as f:
             hashsum = str(f.readline())
             try:
-                checksum = md5SaveCheckSum("saves/" + str(username) + ".db",username,0)
+                checksum = md5SaveCheckSum("saves/" + str(username) + ".db", username, 0)
             except:
                 success_load = 0
             f.close()
@@ -172,7 +173,8 @@ def loadGame(username):
             anticheat = 1
         data_load = getVarFromFile(str(username))
         if data_load == 1:
-            player = data['player']
+            print(data)
+            player = data["player"]
             apps = data['apps']
             stats = data['stats']
             minehistory = data['minehistory']
@@ -205,8 +207,9 @@ def loadGame(username):
                     print(Fore.MAGENTA + Style.BRIGHT + "Bank (deposit) earnings: %s ETH" % str('{0:.10f}'.format(float(bank_earnings))) + sr)
             print(Fore.MAGENTA + Style.BRIGHT + "Offline earnings: %s ETH" % str('{0:.10f}'.format(float(mined * off_earn_k))) + sr)
             success_load = 1
-    except Exception:
+    except Exception as err:
         print(Fore.RED + "Save is missing or corrupted !\nSave version may be old\n" + sr)
+        traceback.print_exc()
         try:
             data.close()
         except:
