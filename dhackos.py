@@ -5,6 +5,7 @@ try:
     from psutil import *
     from os import stat, remove
     import os
+    import json
     from colorama import Fore, Back, Style, init
     from math import pi
     from typing import List, Union
@@ -24,7 +25,7 @@ except Exception as e:
 sr = Style.RESET_ALL
 init()
 from prog.lanhunter import lanhunt
-version = "0.3.1b"
+version = "0.3.2b"
 print(Fore.GREEN + "Welcome to dHackOS Boot Interface !")
 print("Initializing dimankiev's Hack OS...")
 print(Fore.YELLOW + "Loading configuration...")
@@ -59,42 +60,19 @@ debug_info = {
     "OS :": str("\n  " + platform.system() + " " + platform.release()),
     "RAM :": str("\n  Total : " + '{0:.2f}'.format(float(virtual_memory()[0] / 1073741824)) + " GB\n  Used : " + '{0:.2f}'.format(float(virtual_memory()[3] / 1073741824)) + " GB\n  Free : " + '{0:.2f}'.format(float(virtual_memory()[1] / 1073741824)) + " GB")
 }
-cmds = {
-    "apps": " - list of installed apps + levels",
-    "help": " - list of console commands",
-    "shutdown": " - shutdown dHackOS",
-    "scan": " - scan subnet and search for vulnerable servers",
-    "scan_target": " - scan an IP and gather information about target server",
-    "balance": " - opens Ethereum wallet where you can see your Ethereum balance",
-    "load_list": " - shows you targets list",
-    "dhackosf": " - start the dHackOS exploitation framework",
-    "upgrade": " - launch dHackOS programs upgrade CLI",
-    "stats": " - shows your stats",
-    "change_ip_v": " - move from IPv4 (old IP version) to IPv6 (new IP version) (Can't be undone)",
-    "version": " - version of dHackOS",
-    "update_ip": " - replacing your ip with new one",
-    "miner": " - show last 10 mined blocks (short log)",
-    "rescan_subnet": " - rescans subnet to find new targets",
-    "news": " - show latest cyber security news",
-    "debug_info": " - shows you debug information",
-    "miner_info": " - shows you your miner components",
-    "buy_miner": " - buy one more miner",
-    "bank": " - DarkNet Bank CLI",
-    "hilo_game": " - High/Low Bet Game",
-    "lanhunt": " - LanHunt Drone System CLI (BETA)",
-    "miner_cfg": " - Switch the miner power off/on"
-}
-dhackosf_cmds = {
-    "help": " - dhackosf cmd list",
-    "load_modules": " - load dHackOSf modules",
-    "scan": " - scan current target",
-    "connect": " - establish the connection with a target",
-    "bypass": " - start firewall bypassing process",
-    "bruteforce": " - bruteforce the hash",
-    "get_hash": " - get root password hash",
-    "shell": " - initialize a shell on a target system",
-    "exit": " - exit from dhackosf"
-}
+
+cmds = {}
+with open('./data/strings/commands/system.json', 'r') as file:
+    content = file.read()
+    data = json.loads(content)
+    cmds.update(data)
+
+dhackosf_cmds = {}
+with open('./data/strings/commands/dhackosf.json', 'r') as file:
+    content = file.read()
+    data = json.loads(content)
+    dhackosf_cmds.update(data)
+
 stats_desc = {
     "eth_earned": "Ethereums earned: ",
     "shacked": "Servers hacked: ",
@@ -114,48 +92,13 @@ miner_desc = {
     "gpu": "GPU:",
     "software": "Miner v."
 }
-miner_components = {
-    "cpu1": "Intel Pentium IV",
-    "cpu2": "Intel Pentium Gold G5500",
-    "cpu3": "Intel Core 2 Duo E6600",
-    "cpu4": "Intel Core i3-2100",
-    "cpu5": "Intel Core i3-2130",
-    "cpu6": "Intel Core i5-2500K",
-    "cpu7": "Intel Core i7-8705G",
-    "cpu8": "Intel Core i7-9700K",
-    "cpu9": "Intel Core i9-9900K",
-    "cpu10": "Intel Xeon Platinum 8180",
-    "gpu1": "nVidia Quadro FX 330",
-    "gpu2": "nVidia Quadro FX 1700",
-    "gpu3": "nVidia Quadro FX 5800",
-    "gpu4": "nVidia GTX 480",
-    "gpu5": "nVidia GTX 660 Ti",
-    "gpu6": "nVidia GTX 780 Ti",
-    "gpu7": "nVidia GTX 950",
-    "gpu8": "nVidia GTX 980 Ti",
-    "gpu9": "nVidia GTX 1080 Ti",
-    "gpu10": "nVidia RTX 2080 Ti",
-    "ram1": "Avant 1024 Mb",
-    "ram2": "Avant 2GB",
-    "ram3": "Kingston DDR4 4GB",
-    "ram4": "Kingston DDR4 8GB",
-    "ram5": "Corsair DDR4 8GB 2.4Ghz",
-    "ram6": "Corsair DDR4 2x8GB",
-    "ram7": "Corsair DDR4 16GB",
-    "ram8": "Corsair 2x16GB",
-    "ram9": "Corsair 32 GB",
-    "ram10": "Samsung DDR4 128GB",
-    "software1": "1.1",
-    "software2": "1.2",
-    "software3": "1.3",
-    "software4": "2.0",
-    "software5": "2.0.5",
-    "software6": "2.1.2",
-    "software7": "3.0.1",
-    "software8": "3.2",
-    "software9": "3.5",
-    "software10": "4.0b"
-}
+
+miner_components = {}
+with open('./data/strings/miner/components.json', 'r') as file:
+    content = file.read()
+    data = json.loads(content)
+    dhackosf_cmds.update(data)
+
 tcmds = {
     "Employee OS v.8.1 Pro - ": "Commands List: ",
     "wallet": " - personal employee wallet CLI",
@@ -270,46 +213,32 @@ def loadGame(username):
             print("Try again or start new game !")
 
 
-def saveGame(username):
-    global player, apps, stats, minehistory, targets, ips, miner, saveinfo, bank
-    saveinfo = {"version": str(version), "timestamp": time.time()}
+def saveWrite(username, player, apps, stats, minehistory, targets, ips, miner, saveinfo, bank):
     if platform.system() == "Windows":
         path = "saves\\"
     elif platform.system() == "Linux":
         path = "saves/"
     else:
         path = "saves/"
+    if not os.path.exists("./saves"):
+        os.mkdir("./saves")
+    save = shelve.open(path + str(username) + ".db")
+    save.update({
+        "player": player, "apps": apps, "stats": stats,
+        "minehistory": minehistory, "targets": targets, "ips": ips,
+        "miner": miner, "saveinfo": saveinfo, "bank": bank
+    })
+    save.close()
+    md5SaveCheckSum("saves/" + str(username) + ".db", username, 1)
+
+def saveGame(username):
+    global player, apps, stats, minehistory, targets, ips, miner, saveinfo, bank
+    saveinfo = {"version": str(version), "timestamp": time.time()}
     try:
-        save = shelve.open(path + str(username))
-        save["player"] = player
-        save["apps"] = apps
-        save["stats"] = stats
-        save["minehistory"] = minehistory
-        save["targets"] = targets
-        save["ips"] = ips
-        save["miner"] = miner
-        save["saveinfo"] = saveinfo
-        save["bank"] = bank
-        save.close()
-        md5SaveCheckSum("saves/" + str(username) + ".db",username,1)
-    except:
-        try:
-            os.mkdir("./saves")
-            save = shelve.open(path + str(username))
-            save["player"] = player
-            save["apps"] = apps
-            save["stats"] = stats
-            save["minehistory"] = minehistory
-            save["targets"] = targets
-            save["ips"] = ips
-            save["miner"] = miner
-            save["saveinfo"] = saveinfo
-            save["bank"] = bank
-            save.close()
-            md5SaveCheckSum("saves/" + str(username) + ".db",username,1)
-        except PermissionError:
-            print("Save failed ! Please check your read/write permissions\n(If you a Linux or Android user, check chmod or try to launch this game as root)")
-            save.close()
+        saveWrite(username, player, apps, stats, minehistory, targets, ips, miner, saveinfo, bank)
+    except Exception as ex:
+        print("Save failed ! Please check your read/write permissions\n(If you a Linux or Android user, check chmod or try to launch this game as root)")
+        print(ex)
 
 
 def newGame():
