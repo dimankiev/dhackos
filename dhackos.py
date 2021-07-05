@@ -98,7 +98,7 @@ miner_components = {}
 with open('./data/strings/miner/components.json', 'r') as file:
     content = file.read()
     data = json.loads(content)
-    dhackosf_cmds.update(data)
+    miner_components.update(data)
 
 tcmds = {
     "Employee OS v.8.1 Pro - ": "Commands List: ",
