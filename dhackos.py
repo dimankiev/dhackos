@@ -173,7 +173,6 @@ def loadGame(username):
             anticheat = 1
         data_load = getVarFromFile(str(username))
         if data_load == 1:
-            print(data)
             player = data["player"]
             apps = data['apps']
             stats = data['stats']
@@ -187,7 +186,7 @@ def loadGame(username):
         else:
             data.close()
         if saveinfo["version"] != version:
-            compatibility = data['incopatible_version']
+            print(Fore.RED + Style.BRIGHT + f"Your save is outdated. Save version is {saveinfo['version']}" + sr)
         print(Fore.GREEN + Style.BRIGHT + "Welcome " + player["username"] + "!" + sr)
         if md5(pwd.getpass("Please enter your password: "), "dhackos") != player["password"]:
             print(Fore.RED + "The password is wrong !\n" + sr)
