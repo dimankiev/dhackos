@@ -26,7 +26,7 @@ except Exception as e:
 sr = Style.RESET_ALL
 init()
 from prog.lanhunter import lanhunt
-version = "0.3.2b"
+version = "0.3.3b"
 print(Fore.GREEN + "Welcome to dHackOS Boot Interface !")
 print("Initializing dimankiev's Hack OS...")
 print(Fore.YELLOW + "Loading configuration...")
