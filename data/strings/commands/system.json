@@ -17,6 +17,7 @@
   "news": "show latest cyber security news",
   "debug_info": "shows you debug information",
   "miner_info": "shows you your miner components",
+  "miner_shop": "upgrade your components",
   "buy_miner": "buy one more miner",
   "bank": "DarkNet Bank CLI",
   "hilo_game": "High/Low Bet Game",
