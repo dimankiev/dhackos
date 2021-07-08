@@ -728,15 +728,17 @@ while True:
         if success_load == 1:
             print(sr + Fore.GREEN + ".::SUCCESS::.")
             print("Your IP: " + Style.BRIGHT + player["ip"] + sr)
+            print(Fore.YELLOW + "Type help for a list of commands" + sr)
             initGame()
             init_dHackOS_Prompt()
             break
         else:
             continue
-    elif sol == "new" or sol == "nw" or sol == "nwe" or sol == "n":
+    elif sol == "new" or sol == "nw" or sol == "nwe" or sol == "n" or sol == "nee":
         newGame()
         print(sr + Fore.GREEN + ".::SUCCESS::.")
         print("Your IP: " + Style.BRIGHT + str(player["ip"]) + sr)
+        print(Fore.YELLOW + "Type help for a list of commands" + sr)
         initGame()
         init_dHackOS_Prompt()
         break
@@ -878,7 +880,7 @@ while True:
             df_status = "localhost"
             while True:
                 if target == {}:
-                    print(Fore.RED + Style.BRIGHT + "Tutorial:\nSelect an IP from your previous scan results\nYou can enter just a number (0-10) of IP in target list\nType exit to stop the dHackOSf !" + Fore.GREEN)
+                    print(Fore.RED + Style.BRIGHT + "Tutorial:\nSelect an IP from your previous scan results\nYou can enter just a number (0-10) of IP in target list\nType help for list of commands or exit to stop the dHackOSf !" + Fore.GREEN)
                     target_ip = str(input("Please enter the target IP: ").lower())
                     if target_ip == "exit":
                         print("Stopping the dHackOSf..." + sr)
@@ -1272,7 +1274,7 @@ while True:
             for i in progressbar.progressbar(range(100)): time.sleep(0.03)
             print(Fore.GREEN + "Done" + sr)
             time.sleep(1)
-            print(Fore.YELLOW + "Welcome to DarkNet Bank " + player["username"] + "!\n" + sr)
+            print(Fore.YELLOW + "Welcome to DarkNet Bank " + player["username"] + "!\n Type help for list of commands." + sr)
             #bank = {"balance": 0, "borrowed": 0, "deposit_rate": rnd.randint(5,9), "credit_rate": rnd.randint(9,13), "max_borrow": 300, "borrow_time": 0}
             while True:
                 bcmd = str(input("BankCLI (main) > ")).lower()
