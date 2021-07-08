@@ -1,11 +1,11 @@
 {
-  "help": "dhackosf cmd list",
-  "load_modules": "load dHackOSf modules",
-  "scan": "scan current target",
-  "connect": "establish the connection with a target",
-  "bypass": "start firewall bypassing process",
-  "bruteforce": "bruteforce the hash",
-  "get_hash": "get root password hash",
-  "shell": "initialize a shell on a target system",
-  "exit": "exit from dhackosf"
+  "help": "- dhackosf cmd list",
+  "load_modules": "- load dHackOSf modules",
+  "scan": "- scan current target",
+  "connect": "- establish the connection with a target",
+  "bypass": "- start firewall bypassing process",
+  "bruteforce": "- bruteforce the hash",
+  "get_hash": "- get root password hash",
+  "shell": "- initialize a shell on a target system",
+  "exit": "- exit from dhackosf"
 }
