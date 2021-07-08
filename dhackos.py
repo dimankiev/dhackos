@@ -880,7 +880,7 @@ while True:
             df_status = "localhost"
             while True:
                 if target == {}:
-                    print(Fore.RED + Style.BRIGHT + "Tutorial:\nSelect an IP from your previous scan results\nYou can enter just a number (0-10) of IP in target list\nType help for list of commands or exit to stop the dHackOSf !" + Fore.GREEN)
+                    print(Fore.RED + Style.BRIGHT + "Tutorial:\nSelect an IP from your previous scan results\nYou can enter just a number (0-10) of IP in target list\nType exit to stop the dHackOSf !" + Fore.GREEN)
                     target_ip = str(input("Please enter the target IP: ").lower())
                     if target_ip == "exit":
                         print("Stopping the dHackOSf..." + sr)
