@@ -581,7 +581,7 @@ def mineEthereum():
                     #print("Collective Power Level: 10")
             except:
                 collective_power = 10**21
-            miner_power = float((rnd.uniform(0.0000001, 0.0005) * rnd.randint(25,100)) * miner["cpu"] * miner["gpu"] * miner["ram"] * miner["software"] * collective_power)
+            miner_power = float((rnd.uniform(0.0000001, 0.0005) * rnd.randint(25,100)) * miner["cpu"] * miner["gpu"] * miner["ram"] * miner["miner"] * collective_power)
             mined = float(rnd.uniform(0.0000000001, 0.00000005) * stats["miners"] * (stats["ownminers"] ** 3) + rnd.uniform(0.0000000001, 0.00000005 * miner["miner"]) * miner_power * (miner_power / collective_power))
             #print("Collective Power: %s | Miner Power: %s | Mined: %s" % (str(collective_power),str(miner_power),str(mined)))
             now = datetime.datetime.now()
