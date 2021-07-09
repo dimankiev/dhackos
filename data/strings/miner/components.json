@@ -33,10 +33,10 @@
   "miner2": "1.2",
   "miner3": "1.3",
   "miner4": "2.0",
-  "software5": "2.0.5",
-  "software6": "2.1.2",
-  "software7": "3.0.1",
-  "software8": "3.2",
-  "software9": "3.5",
-  "software10": "4.0b"
+  "miner5": "2.0.5",
+  "miner6": "2.1.2",
+  "miner7": "3.0.1",
+  "miner8": "3.2",
+  "miner9": "3.5",
+  "miner10": "4.0b"
 }
