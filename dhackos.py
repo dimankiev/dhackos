@@ -265,7 +265,7 @@ def newGame():
             apps = {"scanner": 1, "spam": 1, "bruteforce": 1, "sdk": 1, "ipspoofing": 1, "dechyper": 1}
             stats = {"eth_earned": 0.0, "shacked": 0, "xp": 0, "rep": 0, "scans": 0, "level": 1, "symbols": 0,
                      "launches": 0, "miners": 1, "ownminers": 1, "proxy": 0}
-            miner = {"cpu": 1, "gpu": 1, "ram": 1, "software": 1}
+            miner = {"cpu": 1, "gpu": 1, "ram": 1, "miner": 1}
             bank = {"balance": 0, "borrowed": 0, "deposit_rate": rnd.randint(5,9), "credit_rate": rnd.randint(9,13), "max_borrow": 300, "borrow_time": 0}
             addInStats("launches", 1, int)
             genTargetsList()
