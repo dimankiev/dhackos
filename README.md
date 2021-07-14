@@ -129,7 +129,7 @@ Alpha-testers
 License
 ---------
 Hacker Simulator is BSD-3-Clause Licensed  
-Copyright © 2018-2019 dimankiev (http://aaa114-project.pp.ua)
+Copyright © 2018-2021 dimankiev (http://aaa114-project.pp.ua)
 
 [1]: https://github.com/dimankiev/dhackos
 [2]: https://termux.com/
