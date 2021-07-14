@@ -728,15 +728,17 @@ while True:
         if success_load == 1:
             print(sr + Fore.GREEN + ".::SUCCESS::.")
             print("Your IP: " + Style.BRIGHT + player["ip"] + sr)
+            print(Fore.YELLOW + "Type help for a list of commands" + sr)
             initGame()
             init_dHackOS_Prompt()
             break
         else:
             continue
-    elif sol == "new" or sol == "nw" or sol == "nwe" or sol == "n":
+    elif sol == "new" or sol == "nw" or sol == "nwe" or sol == "n" or sol == "nee":
         newGame()
         print(sr + Fore.GREEN + ".::SUCCESS::.")
         print("Your IP: " + Style.BRIGHT + str(player["ip"]) + sr)
+        print(Fore.YELLOW + "Type help for a list of commands" + sr)
         initGame()
         init_dHackOS_Prompt()
         break
@@ -1233,7 +1235,16 @@ while True:
                 else:
                     print(Fore.RED + "Unknown input !" + Fore.GREEN)
         elif cmd == "buy_miner":
-            print(Fore.GREEN + "[Miner Shop]")
+            print(Fore.GREEN + "Connecting to www.minershop.org... connected.")
+            time.sleep(2)
+            print(Fore.GREEN + " HTTP request sent, awaiting response... 200 OK")
+            time.sleep(1)
+            print(Fore.GREEN + "Lenght: 10701 (10k) [text/html]\n Saving to: 'index.html'")
+            for i in progressbar.progressbar(range(100)): time.sleep(0.03)
+            time.sleep(1)
+            print(Fore.GREEN + "Saved to 'index.html'" + sr)
+            time.sleep(1)
+            print(Fore.GREEN + "[-=-=-Miner Shop-=-=-]")
             try:
                 cost = float(0)
                 for minecomp in miner:
@@ -1259,7 +1270,11 @@ while True:
         		print(Fore.GREEN + "%s %s" % (miner_desc[minecomp],miner_components[minecomp + str(miner[minecomp])]))
         	print("Temperature: %d °C\nCPU Load: %s %%" % (rnd.randint(65,75),str('{0:.2f}'.format(rnd.uniform(90,99)))) + sr)
         elif cmd == "bank":
-            print(Fore.YELLOW + "Welcome to DarkNet Bank !\n" + sr)
+            print(Fore.GREEN + "Connecting to your Darknet Bank account...")
+            for i in progressbar.progressbar(range(100)): time.sleep(0.03)
+            print(Fore.GREEN + "Done" + sr)
+            time.sleep(1)
+            print(Fore.YELLOW + "Welcome to DarkNet Bank " + player["username"] + "!\n Type help for list of commands." + sr)
             #bank = {"balance": 0, "borrowed": 0, "deposit_rate": rnd.randint(5,9), "credit_rate": rnd.randint(9,13), "max_borrow": 300, "borrow_time": 0}
             while True:
                 bcmd = str(input("BankCLI (main) > ")).lower()
@@ -1388,7 +1403,7 @@ while True:
                 else:
                     print(Fore.RED + "Unknown input !" + Fore.GREEN)
         elif cmd == "lanhunt":
-            player["ethereums"] = lanhunt.mainLanHuntCLI()
+            player["ethereums"] += lanhunt.mainLanHuntCLI()
         elif cmd == "debug":
             f = open("variables_dbg_out.txt", "w")
             f.write(str("\n=========LOCALS=========\n" + str(locals()) + "\n" + "=========GLOBALS=========\n" + str(globals()) + "\n" + "=========DIR=========\n" + str(dir())))
