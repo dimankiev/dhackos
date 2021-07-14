@@ -1,5 +1,4 @@
 Hacker Simulator 2 (dHackOS)
-__Discontinued__
 =============
 [Hacker Simulator 2][1] - Reincarnation of [Hacker Simulator 1](https://github.com/dimankiev/hacker_sim)
 
@@ -7,7 +6,7 @@ Written using Python 3.6.
 
 Bots, subnets, tracing, upgrades, comfortable prompt, miners, and a lot of interesting things included in this game.
 
-Actual version: 0.3.1b
+Actual version: 0.3.3b
 
 Installation (Android)
 -----------------------
@@ -24,13 +23,7 @@ Installation (Android)
 6. Install required modules by commands below:
    ```
    apt-get install python-dev clang libcrypt-dev
-   pip install psutil
-   pip install prompt_toolkit
-   pip install platform
-   pip install colorama
-   pip install progressbar2
-   pip install hashlib
-   pip install shelve
+   pip install -r requirements.txt
    ```
 7. Use `git clone https://github.com/dimankiev/dhackos.git` command to download the game
 
@@ -46,13 +39,7 @@ Installation (Windows)
 
 2. Install required modules by commands below:
    ```
-   pip install psutil
-   pip install prompt_toolkit
-   pip install platform
-   pip install colorama
-   pip install progressbar2
-   pip install hashlib
-   pip install shelve
+   pip install -r requirements.txt
    ```
 3. Download the game archive [HERE][4] and unzip it to any folder (Example: `C:\Games\dHackOS`)
 
@@ -117,24 +104,23 @@ Requirements
 
 2. Install required modules by commands below:
    ```
-   pip install psutil
-   pip install prompt_toolkit
-   pip install platform
-   pip install colorama
-   pip install progressbar2
-   pip install hashlib
-   pip install shelve
+   pip install -r requirements.txt
    ```
 
 Links
 ----------
 - [dimankiev (Telegram)](https://t.me/dimankiev)
 - [dhackos (Telegram)](https://t.me/dhackos)
-- [dhackos RU (Telegram group)](https://t.me/dhackos_ru)
-- [dhackos EN (Telegram group)](https://t.me/dhackos_en)
-- [dhackos support (Telegram)](https://t.me/dhackos_bot)
 - [aaa114-project](http://aaa114-project.pp.ua)
 - [dimankiev (E-Mail)](mailto:dimankiev@gmail.com)
+
+Maintainers
+-------------------
+- Dmitry Nelipa [(Telegram)](https://t.me/dimankiev) [(GitHub)](https://github.com/dimankiev)
+
+Contributors
+-------------------
+- Eight Nice [(Telegram)](https://t.me/eightnice)
 
 Alpha-testers
 -------------------
