@@ -201,8 +201,8 @@ def loadGame(username):
         else:
             addInStats("launches", 1, int)
             off_earn_k = time.time() - saveinfo["timestamp"]
-            miner_power = float((rnd.uniform(0.0000001, 0.0005) * rnd.randint(25,100)) * miner["cpu"] * miner["gpu"] * miner["ram"] * miner["miner"] * 200)
-            mined = float(rnd.uniform(0.00000000001, 0.00000005) * stats["miners"] * (stats["ownminers"] ** 3) + rnd.uniform(0.00000000001, 0.00000005 * miner["miner"]) * miner_power * (miner_power / 20000))
+            miner_power = float((rnd.uniform(0.0000001, 0.0005) * rnd.randint(25,100)) * miner["cpu"] * miner["gpu"] * miner["ram"] * miner["software"] * 200)
+            mined = float(rnd.uniform(0.00000000001, 0.00000005) * stats["miners"] * (stats["ownminers"] ** 3) + rnd.uniform(0.00000000001, 0.00000005 * miner["software"]) * miner_power * (miner_power / 20000))
             if miner_power_status == "on":
                 player["ethereums"] += mined * off_earn_k
                 bank_off_earn_k = off_earn_k // 60
@@ -286,7 +286,7 @@ def newGame():
             apps = {"scanner": 1, "spam": 1, "bruteforce": 1, "sdk": 1, "ipspoofing": 1, "dechyper": 1}
             stats = {"eth_earned": 0.0, "shacked": 0, "xp": 0, "rep": 0, "scans": 0, "level": 1, "symbols": 0,
                      "launches": 0, "miners": 1, "ownminers": 1, "proxy": 0}
-            miner = {"cpu": 1, "gpu": 1, "ram": 1, "miner": 1}
+            miner = {"cpu": 1, "gpu": 1, "ram": 1, "software": 1}
             bank = {"balance": 0, "deposit_rate": rnd.randint(5,9)}
             addInStats("launches", 1, int)
             genTargetsList()
@@ -582,8 +582,8 @@ def mineEthereum():
                     #print("Collective Power Level: 10")
             except:
                 collective_power = 10**21
-            miner_power = float((rnd.uniform(0.0000001, 0.0005) * rnd.randint(25,100)) * miner["cpu"] * miner["gpu"] * miner["ram"] * miner["miner"] * collective_power)
-            mined = float(rnd.uniform(0.0000000001, 0.00000005) * stats["miners"] * (stats["ownminers"] ** 3) + rnd.uniform(0.0000000001, 0.00000005 * miner["miner"]) * miner_power * (miner_power / collective_power))
+            miner_power = float((rnd.uniform(0.0000001, 0.0005) * rnd.randint(25,100)) * miner["cpu"] * miner["gpu"] * miner["ram"] * miner["software"] * collective_power)
+            mined = float(rnd.uniform(0.0000000001, 0.00000005) * stats["miners"] * (stats["ownminers"] ** 3) + rnd.uniform(0.0000000001, 0.00000005 * miner["software"]) * miner_power * (miner_power / collective_power))
             #print("Collective Power: %s | Miner Power: %s | Mined: %s" % (str(collective_power),str(miner_power),str(mined)))
             now = datetime.datetime.now()
             player["ethereums"] = player["ethereums"] + mined
