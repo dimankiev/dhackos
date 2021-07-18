@@ -23,6 +23,7 @@ Installation (Android)
 6. Install required modules by commands below:
    ```
    apt-get install python-dev clang libcrypt-dev
+   pkg install play-audio
    pip install -r requirements.txt
    ```
 7. Use `git clone https://github.com/dimankiev/dhackos.git` command to download the game
@@ -82,9 +83,11 @@ Getting started
     news - show latest cyber security news
     debug_info - shows you debug information
     miner_info - shows you your miner components
+    miner_shop
     buy_miner - buy one more miner
     bank - DarkNet Bank CLI
     hilo_game - High/Low Bet Game
+    clear - Clean the screen
    ```
 
 3. Use `scan` to find first targets.
