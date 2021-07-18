@@ -87,6 +87,9 @@ Getting started
     buy_miner - buy one more miner
     bank - DarkNet Bank CLI
     hilo_game - High/Low Bet Game
+    lanhunt - LanHunt Drone System CLI (BETA)
+    miner_stat - Show miner power status
+    miner_cfg - Switch the miner power on/off
     clear - Clean the screen
    ```
 
