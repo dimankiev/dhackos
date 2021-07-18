@@ -3,3 +3,5 @@ progressbar2
 psutil
 prompt_toolkit
 colorama
+subprocess
+signal
