@@ -2,5 +2,5 @@
     "cpu": "CPU:",
     "ram": "RAM:",
     "gpu": "GPU:",
-    "miner": "Miner v."
+    "software": "Miner v."
 }
