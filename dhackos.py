@@ -541,7 +541,7 @@ def mineEthereum():
     minelog = 11
     firststart = 1
     while True:
-        time.sleep(1)
+        time.sleep(3600)
         if miner_power_status == "on":
             try:
                 if stats["ownminers"] < 4 and stats["ownminers"] > 1:
