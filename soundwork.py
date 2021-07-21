@@ -62,7 +62,7 @@ def bankSound():
     time.sleep(1)
     print(sr + gr + "Connected!\n" + sr)
     time.sleep(1)
-    print(yw + "Welcome to DarkNet Bank " + sr + player["username"] + yw + "!\n" + sr)
+    print(yw + "Welcome to DarkNet Bank!\n" + sr)
 
 def bankNosound():
     print(" \n" + yw + "Connecting to your Darknet Bank account..." + sr + sb)
@@ -71,4 +71,4 @@ def bankNosound():
     time.sleep(1)
     print(sr + gr + "Connected!\n" + sr)
     time.sleep(1)
-    print(yw + "Welcome to DarkNet Bank " + sr + player["username"] + yw + "!\n" + sr)
+    print(yw + "Welcome to DarkNet Bank!\n" + sr)
