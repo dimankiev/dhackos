@@ -1,8 +1,11 @@
+import platform
+import sys
 from colorama import Fore, Style, init
 import progressbar
 import time
 import subprocess
 import signal
+from playsound import playsound
 
 yw = Fore.YELLOW
 gr = Fore.GREEN
@@ -34,7 +37,11 @@ def bMinerSound():
     time.sleep(1)
     print("Lenght: 10701 (10k) [text/html]\n Saving to: 'index.html'" +sr + sb)
     time.sleep(1)
-    p = subprocess.Popen('play-audio ' + './sounds/connect1.mp3 ./sounds/connect2.mp3', shell=True)
+    if platform.system() == "Linux":
+        p = subprocess.Popen('play-audio ' + './sounds/connect1.mp3 ./sounds/connect2.mp3', shell=True)
+    elif platform.system() == "Windows":
+        playsound('.\\sounds\\connect1.mp3', block=False)
+        playsound('.\\sounds\\connect2.mp3', block=False)
     for i in progressbar.progressbar(range(100)): time.sleep(0.03)
     time.sleep(1)
     print(sr + gr + "Saved to 'index.html'\n" + sr)
@@ -44,14 +51,18 @@ def bMinerSound():
 def bankSound():
     print(" \n" + yw + "Connecting to your Darknet Bank account..." + sr + sb)
     time.sleep(1)
-    p = subprocess.Popen('play-audio ' + './sounds/connect1.mp3', shell=True)
-    p = subprocess.Popen('play-audio ' + './sounds/connect2.mp3', shell=True)
+    if platform.system() == "Linux":
+        p = subprocess.Popen('play-audio ' + './sounds/connect1.mp3', shell=True)
+        p = subprocess.Popen('play-audio ' + './sounds/connect2.mp3', shell=True)
+    elif platform.system() == "Windows":
+        playsound('.\\sounds\\connect1.mp3', block=False)
+        playsound('.\\sounds\\connect2.mp3', block=False)
     time.sleep(0.4)
     for i in progressbar.progressbar(range(100)): time.sleep(0.015)
     time.sleep(1)
     print(sr + gr + "Connected!\n" + sr)
     time.sleep(1)
-    print(yw + "Welcome to DarkNet Bank!\n" + sr)
+    print(yw + "Welcome to DarkNet Bank " + sr + player["username"] + yw + "!\n" + sr)
 
 def bankNosound():
     print(" \n" + yw + "Connecting to your Darknet Bank account..." + sr + sb)
@@ -60,4 +71,4 @@ def bankNosound():
     time.sleep(1)
     print(sr + gr + "Connected!\n" + sr)
     time.sleep(1)
-    print(yw + "Welcome to DarkNet Bank!\n" + sr)
+    print(yw + "Welcome to DarkNet Bank " + sr + player["username"] + yw + "!\n" + sr)

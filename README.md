@@ -40,6 +40,7 @@ Installation (Windows)
 
 2. Install required modules by commands below:
    ```
+   pip install playsound
    pip install -r requirements.txt
    ```
 3. Download the game archive [HERE][4] and unzip it to any folder (Example: `C:\Games\dHackOS`)
