@@ -113,7 +113,7 @@ def intro():
             playsound('.\\sounds\\normaldone.mp3', block=False)
         for caracter in cadena:
             sayshort(str(caracter))
-            sayshort("\033[2;15f." + "\033[2;16f." + "\033[2;17f." + "\033[2;18f." + "\033[2;19f." + "\033[2;20f." + "\033[2;21f." + "\033[2;22f." + "\033[2;23." + "\033[2;24f." + "\033[2;25f." + "\033[2;26f." + sr + "[" + gr + "DONE" + sr + "]\n")
+            sayshort("\033[2;15f." + "\033[2;16f." + "\033[2;17f." + "\033[2;18f." + "\033[2;19f." + "\033[2;20f." + "\033[2;21f." + "\033[2;22f." + "\033[2;23f." + "\033[2;24f." + "\033[2;25f." + "\033[2;26f." + sr + "[" + gr + "DONE" + sr + "]\n")
         offline = False
         time.sleep(2)
         if platform.system() == "Linux":
