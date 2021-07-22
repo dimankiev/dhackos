@@ -1,7 +1,6 @@
 wheel
 progressbar2
-psutil
+psutil~=5.8.0
 prompt_toolkit
-colorama
-subprocess
-signal
+colorama~=0.4.4
+playsound

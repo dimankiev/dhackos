@@ -27,6 +27,9 @@ except Exception as e:
  """)
     print(str(e))
     exit()
+
+from prog.lanhunter import lanhunt
+
 sr = Style.RESET_ALL
 sb = Style.BRIGHT
 gr = Fore.GREEN
@@ -37,9 +40,7 @@ wt = Fore.WHITE
 
 init()
 
-from prog.lanhunter import lanhunt
-
-miner_power_status = "off"
+miner_power_status = "on"
 version = "0.3.3b"
 
 clearScreen()
@@ -54,78 +55,62 @@ while True:
     else:
         print(rd + "Unknown input. Yes or no?" + sr)
 
+companies = ["BG", "Namlung", "Benovo", "Rony", "nSidia", "FBI", "CIA", "Calve", "Babebook", "Foogle",
+             "Introversion Software", "Memla Rotors", "aaa114-project", "Fibrosoft", "MotoLearn Inc.", "Pharma",
+             "Testle", "Unknown", "RoogeeR", "Ethereum", "Bitcoin", "Entel", "AMB", "ASIC", "Telegram", "LinkedOut",
+             "Outagram", "DEFCON", "SCP", "HackNet", "Python", "Foogle Project Ni", "DDoS Booster Ltd.", "LMAO",
+             "NoTeam", "ST corp.", "dHackOS"]
 
 
-companies = ["LG", "Samsung", "Lenovo", "Sony", "nVidia", "FBI", "CIA", "Valve", "Facebook", "Google",
-    "Introversion Software", "Tesla Motors", "aaa114-project", "Microsoft", "SoloLearn Inc.", "Pharma",
-    "Nestle", "Unknown", "Doogee", "Ethereum", "Ethereum", "Intel", "AMD", "ASIC", "Telegram", "LinkedIn",
-    "Instagram", "DEFCON", "SCP", "HackNet", "Python", "Google Project Fi", "DDoS Booter Ltd.", "Valve", "Steam", "ST corp.", "dHackOS"]
+def strings_load(strings_var: dict, strings_path: str):
+    with open(strings_path, 'r') as file:
+        content = file.read()
+        strings_data = json.loads(content)
+        strings_var.update(strings_data)
+
 
 bank_help = {}
-with open('./data/strings/commands/bank.json', 'r') as file:
-    content = file.read()
-    data = json.loads(content)
-    bank_help.update(data)
+strings_load(bank_help, './data/strings/commands/bank.json')
 
 about = {}
-with open('./data/strings/about_info.json', 'r') as file:
-    content = file.read()
-    data = json.loads(content)
-    about.update(data)
+strings_load(about, './data/strings/about_info.json')
+
+cmds = {}
+strings_load(cmds, './data/strings/commands/system.json')
+
+dhackosf_cmds = {}
+strings_load(dhackosf_cmds, './data/strings/commands/dhackosf.json')
+
+stats_desc = {}
+strings_load(stats_desc, './data/strings/stats.json')
+
+miner_desc = {}
+strings_load(miner_desc, './data/strings/miner/minerdesc.json')
+
+miner_components = {}
+strings_load(miner_components, './data/strings/miner/components.json')
+
+tcmds = {}
+strings_load(tcmds, './data/strings/targets/t_commands.json')
+
+target_desc = {}
+strings_load(target_desc, './data/strings/targets/targetdesc.json')
 
 debug_info = {
     "Version :": str("\n  dHackOS v." + version),
     "OS :": str("\n  " + platform.system() + " " + platform.release()),
-    "RAM :": str("\n  Total : " + '{0:.2f}'.format(float(virtual_memory()[0] / 1073741824)) + " GB\n  Used : " + '{0:.2f}'.format(float(virtual_memory()[3] / 1073741824)) + " GB\n  Free : " + '{0:.2f}'.format(float(virtual_memory()[1] / 1073741824)) + " GB")
+    "RAM :": str("\n  Total : " + '{0:.2f}'.format(
+        float(virtual_memory()[0] / 1073741824)) + " GB\n  Used : " + '{0:.2f}'.format(
+        float(virtual_memory()[3] / 1073741824)) + " GB\n  Free : " + '{0:.2f}'.format(
+        float(virtual_memory()[1] / 1073741824)) + " GB")
 }
-
-cmds = {}
-with open('./data/strings/commands/system.json', 'r') as file:
-    content = file.read()
-    data = json.loads(content)
-    cmds.update(data)
-
-dhackosf_cmds = {}
-with open('./data/strings/commands/dhackosf.json', 'r') as file:
-    content = file.read()
-    data = json.loads(content)
-    dhackosf_cmds.update(data)
-
-stats_desc = {}
-with open('./data/strings/stats.json', 'r') as file:
-    content = file.read()
-    data = json.loads(content)
-    stats_desc.update(data)
-
-miner_desc = {}
-with open('./data/strings/miner/minerdesc.json', 'r') as file:
-    content = file.read()
-    data = json.loads(content)
-    miner_desc.update(data)
-
-miner_components = {}
-with open('./data/strings/miner/components.json', 'r') as file:
-    content = file.read()
-    data = json.loads(content)
-    miner_components.update(data)
-
-tcmds = {}
-with open('./data/strings/targets/t_commands.json', 'r') as file:
-    content = file.read()
-    data = json.loads(content)
-    tcmds.update(data)
-
-target_desc = {}
-with open('./data/strings/targets/targetdesc.json') as file:
-    content = file.read()
-    data = json.loads(content)
-    target_desc.update(data)
 
 
 def genIPv4():
     ip = str(str(rnd.randint(172, 192)) + "." + str(rnd.randint(0, 255)) + "." + str(rnd.randint(0, 255)) + "." + str(
         rnd.randint(1, 255)))
     return ip
+
 
 def genIPv6():
     M = 16 ** 4
@@ -154,8 +139,8 @@ def getVarFromFile(filename):
     return success_sload
 
 
-def loadGame(username):
-    global player, data, apps, stats, success_load, minehistory, targets, ips, miner, bank, anticheat, miner_power_status, off_earn_k, miner_power, mined, bank_off_earn_k, path
+def gamesave_load(username):
+    global player, data, apps, stats, success_load, minehistory, targets, ips, miner, bank, anticheat, miner_power_status, off_earn_k, miner_power, mined, bank_off_earn_k, path, saveinfo
     success_load = 0
     if platform.system() == "Windows":
         path = "saves\\"
@@ -201,13 +186,18 @@ def loadGame(username):
         else:
             addInStats("launches", 1, int)
             off_earn_k = time.time() - saveinfo["timestamp"]
-            miner_power = float((rnd.uniform(0.0000001, 0.0005) * rnd.randint(25,100)) * miner["cpu"] * miner["gpu"] * miner["ram"] * miner["software"] * 200)
-            mined = float(rnd.uniform(0.00000000001, 0.00000005) * stats["miners"] * (stats["ownminers"] ** 3) + rnd.uniform(0.00000000001, 0.00000005 * miner["software"]) * miner_power * (miner_power / 20000))
+            miner_power = float(
+                (rnd.uniform(0.0000001, 0.0005) * rnd.randint(25, 100)) * miner["cpu"] * miner["gpu"] * miner["ram"] *
+                miner["software"] * 200)
+            mined = float(
+                rnd.uniform(0.00000000001, 0.00000005) * stats["miners"] * (stats["ownminers"] ** 3) + rnd.uniform(
+                    0.00000000001, 0.00000005 * miner["software"]) * miner_power * (miner_power / 20000))
             if miner_power_status == "on":
                 player["ethereums"] += mined * off_earn_k
                 bank_off_earn_k = off_earn_k // 60
                 print(" \n" + Fore.MAGENTA + "You were offline for: %d mins" % bank_off_earn_k)
-                print(Fore.MAGENTA + sb + "Offline earnings: %s ETH" % str('{0:.8f}'.format(float(mined * off_earn_k))) + sr)
+                print(Fore.MAGENTA + sb + "Offline earnings: %s ETH" % str(
+                    '{0:.8f}'.format(float(mined * off_earn_k))) + sr)
                 addInStats("eth_earned", mined, float)
             else:
                 bank_off_earn_k = off_earn_k // 60
@@ -217,7 +207,8 @@ def loadGame(username):
                 if bank_off_earn_k >= 1:
                     bank_earnings = float((bank["balance"] / 100) * bank["deposit_rate"]) * bank_off_earn_k
                     bank["balance"] += bank_earnings
-                    print(Fore.MAGENTA + sb + "Bank (deposit) earnings: %s ETH" % str('{0:.8f}'.format(float(bank_earnings))) + sr)
+                    print(Fore.MAGENTA + sb + "Bank (deposit) earnings: %s ETH" % str(
+                        '{0:.8f}'.format(float(bank_earnings))) + sr)
             success_load = 1
     except Exception as err:
         print(rd + "Save is missing or corrupted !\nSave version may be old\n" + sr)
@@ -228,7 +219,7 @@ def loadGame(username):
             print("Try again or start new game !")
 
 
-def saveWrite(username, player, apps, stats, minehistory, targets, ips, miner, saveinfo, bank):
+def gamesave_write(username, player, apps, stats, minehistory, targets, ips, miner, saveinfo, bank):
     if platform.system() == "Windows":
         path = "saves\\"
     elif platform.system() == "Linux":
@@ -247,13 +238,15 @@ def saveWrite(username, player, apps, stats, minehistory, targets, ips, miner, s
     save.close()
     md5SaveCheckSum("saves/" + str(username) + ".db", username, 1)
 
+
 def saveGame(username):
     global player, apps, stats, minehistory, targets, ips, miner, saveinfo, bank
     saveinfo = {"version": str(version), "timestamp": time.time()}
     try:
-        saveWrite(username, player, apps, stats, minehistory, targets, ips, miner, saveinfo, bank)
+        gamesave_write(username, player, apps, stats, minehistory, targets, ips, miner, saveinfo, bank)
     except Exception as ex:
-        print(rd + "Save failed! Please check your read/write permissions\n(If you a Linux or Android user, check chmod or try to launch this game as root)" + sr)
+        print(
+            rd + "Save failed! Please check your read/write permissions\n(If you a Linux or Android user, check chmod or try to launch this game as root)" + sr)
         print(ex)
 
 
@@ -287,7 +280,7 @@ def newGame():
             stats = {"eth_earned": 0.0, "shacked": 0, "xp": 0, "rep": 0, "scans": 0, "level": 1, "symbols": 0,
                      "launches": 0, "miners": 1, "ownminers": 1, "proxy": 0}
             miner = {"cpu": 1, "gpu": 1, "ram": 1, "software": 1}
-            bank = {"balance": 0, "deposit_rate": rnd.randint(5,9)}
+            bank = {"balance": 0, "deposit_rate": rnd.randint(5, 9)}
             addInStats("launches", 1, int)
             genTargetsList()
             anticheat = 1
@@ -299,7 +292,7 @@ def bankWork():
     while True:
         time.sleep(3600)
         bank["balance"] += float((bank["balance"] / 100) * bank["deposit_rate"])
-        
+
 
 def addInStats(param, value, type):
     try:
@@ -314,20 +307,22 @@ def levelCheck():
         player["xp"] = 0
         award = 10 * stats["level"]
         player["ethereums"] = float(player["ethereums"] + award)
-        print(sb + gr + str(stats["level"]) + " level reached !\n You had been awarded by " + str(award) + " ETH !\n Congrats !" + sr)
+        print(sb + gr + str(stats["level"]) + " level reached !\n You had been awarded by " + str(
+            award) + " ETH !\n Congrats !" + sr)
+
 
 def showVoc(vocabulary, description, additional, color):
-    if description == None and additional == None:
+    if description is None and additional is None:
         for param in vocabulary:
             print(color + sb + param + Style.NORMAL + " " + str(vocabulary[param]) + sr)
-    elif description == None and additional != None:
+    elif description is None and additional is not None:
         for param in vocabulary:
             print(
                 color + sb + param + Style.NORMAL + " " + str(vocabulary[param]) + " " + str(additional) + sr)
-    elif description != None and additional == None:
+    elif description is not None and additional is None:
         for param in vocabulary:
             if param == "k":
-                print(color + sb + description[param] + Style.NORMAL + "DHACK26" + str(
+                print(color + sb + description[param] + Style.NORMAL + "DHACK33" + str(
                     vocabulary[param]) * 2 + sr)
             elif param == "eth_earned":
                 print(color + sb + description[param] + Style.NORMAL + " " + str(
@@ -346,7 +341,7 @@ def md5(string, salt):
     return hash
 
 
-def md5SaveCheckSum(fname,username,action):
+def md5SaveCheckSum(fname, username, action):
     hash_md5 = hashlib.md5()
     with open(fname, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
@@ -368,11 +363,12 @@ def genTarget(k, ip):
     if k == 1:
         target["firewall"] = min
     else:
-        target["firewall"] = rnd.randint(min,(min + (rnd.randint(1, min)) + k))
+        target["firewall"] = rnd.randint(min, (min + (rnd.randint(1, min)) + k))
     target = {"ip": ip,
               "ethereums": rnd.uniform((apps["bruteforce"] + apps["sdk"] + apps["ipspoofing"] + apps["dechyper"]) // 4,
-                                      pi * float(target["firewall"]) + float(k)),
-              "company": companies[rnd.randint(0, int(len(companies) - 1))], "port": rnd.randint(1, 65535), "service": "OpenSSH",
+                                       pi * float(target["firewall"]) + float(k)),
+              "company": companies[rnd.randint(0, int(len(companies) - 1))], "port": rnd.randint(1, 65535),
+              "service": "OpenSSH",
               "firewall": target["firewall"], "k": k, "miner_injected": 0, "proxy": 0}
     return target
 
@@ -399,7 +395,7 @@ def traceStart():
     global tracing, connection, target
     tracing = int(apps["ipspoofing"] - target["firewall"]) + stats["proxy"] * 2
     if tracing <= 13:
-        #print(str(tracing) + "sec calculated") #debug_info
+        # print(str(tracing) + "sec calculated") #debug_info
         tracing = 13
     while True:
         if connection == 1 and tracing != 0:
@@ -413,7 +409,7 @@ def proxyKill():
     global stats
     while True:
         time.sleep(30)
-        chance = rnd.randint(0,100)
+        chance = rnd.randint(0, 100)
         if chance >= 50:
             if stats["proxy"] > 5:
                 stats["proxy"] -= 1
@@ -447,6 +443,7 @@ def loadTargetList():
                 return target_list
         else:
             continue
+
 
 def resetTargetBalance():
     while True:
@@ -498,10 +495,11 @@ def searchTargets(is_bot):
         player_target_list = loadTargetList()
         print(gr + "Targets found !\nIP list:" + sb)
         for i in range(0, len(player_target_list)): print(str(i) + ". " + player_target_list[int(i)])
-        print(Style.NORMAL + "Please choose the IP, launch " + sb + "dHackOSf" + Style.NORMAL + " and enter the IP what you choosen" + sr)
+        print(
+            Style.NORMAL + "Please choose the IP, launch " + sb + "dHackOSf" + Style.NORMAL + " and enter the IP what you choosen" + sr)
     else:
         bot_target_list = loadTargetList()
-        bot_target = targets[bot_target_list[rnd.randint(0,(len(bot_target_list) - 1))]]
+        bot_target = targets[bot_target_list[rnd.randint(0, (len(bot_target_list) - 1))]]
         return bot_target
 
 
@@ -520,7 +518,7 @@ def initGame():
         miner_cl = threading.Thread(target=mineEthereum)
         miner_cl.daemon = True
         miner_cl.start()
-        tbr = threading.Thread(target=resetTargetBalance) #target balance reset
+        tbr = threading.Thread(target=resetTargetBalance)  # target balance reset
         tbr.daemon = True
         tbr.start()
         game_bot = threading.Thread(target=gameBot)
@@ -544,47 +542,52 @@ def mineEthereum():
         time.sleep(1800)
         if miner_power_status == "on":
             try:
-                if stats["ownminers"] < 4 and stats["ownminers"] > 1:
-                    collective_power = stats["ownminers"] * rnd.uniform(25,100)
-                    #print("Collective Power Level: 1.2")
-                elif stats["ownminers"] >= 4 and stats["ownminers"] <= 7:
-                    collective_power = stats["ownminers"] * rnd.uniform(50,150)
-                    #print("Collective Power Level: 2")
-                elif stats["ownminers"] > 7 and stats["ownminers"] <= 15:
-                    collective_power = stats["ownminers"] * rnd.uniform(75,175)
-                    #print("Collective Power Level: 3")
-                elif stats["ownminers"] > 15 and stats["ownminers"] <= 25:
-                    collective_power = stats["ownminers"] * rnd.uniform(100,250) ** 2
-                    #print("Collective Power Level: 4")
-                elif stats["ownminers"] > 35 and stats["ownminers"] <= 45:
-                    collective_power = stats["ownminers"] * rnd.uniform(175,275)
-                    #print("Collective Power Level: 5")
-                elif stats["ownminers"] > 45 and stats["ownminers"] <= 50:
-                    collective_power = stats["ownminers"] * rnd.uniform(225,325)
-                    #print("Collective Power Level: 6")
-                elif stats["ownminers"] > 50 and stats["ownminers"] <= 65:
-                    collective_power = stats["ownminers"] * rnd.uniform(500,1000) ** 2
-                    #print("Collective Power Level: 7")
-                elif stats["ownminers"] > 75 and stats["ownminers"] <= 90:
-                    collective_power = stats["ownminers"] * rnd.uniform(1250,3000)
-                    #print("Collective Power Level: 8")
-                elif stats["ownminers"] > 90 and stats["ownminers"] <= 125:
-                    collective_power = stats["ownminers"] * rnd.uniform(3000,7000) ** 2
-                    #print("Collective Power Level: 9")
+                if 4 > stats["ownminers"] > 1:
+                    collective_power = stats["ownminers"] * rnd.uniform(25, 100)
+                    # print("Collective Power Level: 1.2")
+                elif 4 <= stats["ownminers"] <= 7:
+                    collective_power = stats["ownminers"] * rnd.uniform(50, 150)
+                    # print("Collective Power Level: 2")
+                elif 7 < stats["ownminers"] <= 15:
+                    collective_power = stats["ownminers"] * rnd.uniform(75, 175)
+                    # print("Collective Power Level: 3")
+                elif 15 < stats["ownminers"] <= 25:
+                    collective_power = stats["ownminers"] * rnd.uniform(100, 250) ** 2
+                    # print("Collective Power Level: 4")
+                elif 35 < stats["ownminers"] <= 45:
+                    collective_power = stats["ownminers"] * rnd.uniform(175, 275)
+                    # print("Collective Power Level: 5")
+                elif 45 < stats["ownminers"] <= 50:
+                    collective_power = stats["ownminers"] * rnd.uniform(225, 325)
+                    # print("Collective Power Level: 6")
+                elif 50 < stats["ownminers"] <= 65:
+                    collective_power = stats["ownminers"] * rnd.uniform(500, 1000) ** 2
+                    # print("Collective Power Level: 7")
+                elif 75 < stats["ownminers"] <= 90:
+                    collective_power = stats["ownminers"] * rnd.uniform(1250, 3000)
+                    # print("Collective Power Level: 8")
+                elif 90 < stats["ownminers"] <= 125:
+                    collective_power = stats["ownminers"] * rnd.uniform(3000, 7000) ** 2
+                    # print("Collective Power Level: 9")
                 elif stats["ownminers"] == 1:
                     collective_power = float(1)
-                    #print("Collective Power Level: 0")
+                    # print("Collective Power Level: 0")
                 elif stats["ownminers"] == 2:
-                    collective_power = rnd.uniform(50,125)
-                    #print("Collective Power Level: 1")
+                    collective_power = rnd.uniform(50, 125)
+                    # print("Collective Power Level: 1")
                 else:
-                    collective_power = float((stats["ownminers"] ** (stats["ownminers"] / 500)) * rnd.uniform(10000 * (stats["ownminers"]/100),50000 * (stats["ownminers"]/100)) ** rnd.randint(2,5))
-                    #print("Collective Power Level: 10")
+                    collective_power = float((stats["ownminers"] ** (stats["ownminers"] / 500)) * rnd.uniform(
+                        10000 * (stats["ownminers"] / 100), 50000 * (stats["ownminers"] / 100)) ** rnd.randint(2, 5))
+                    # print("Collective Power Level: 10")
             except:
-                collective_power = 10**21
-            miner_power = float((rnd.uniform(0.0000001, 0.0005) * rnd.randint(25,100)) * miner["cpu"] * miner["gpu"] * miner["ram"] * miner["software"] * collective_power)
-            mined = float(rnd.uniform(0.0000000001, 0.00000005) * stats["miners"] * (stats["ownminers"] ** 3) + rnd.uniform(0.0000000001, 0.00000005 * miner["software"]) * miner_power * (miner_power / collective_power))
-            #print("Collective Power: %s | Miner Power: %s | Mined: %s" % (str(collective_power),str(miner_power),str(mined)))
+                collective_power = 10 ** 21
+            miner_power = float(
+                (rnd.uniform(0.0000001, 0.0005) * rnd.randint(25, 100)) * miner["cpu"] * miner["gpu"] * miner["ram"] *
+                miner["software"] * collective_power)
+            mined = float(
+                rnd.uniform(0.0000000001, 0.00000005) * stats["miners"] * (stats["ownminers"] ** 3) + rnd.uniform(
+                    0.0000000001, 0.00000005 * miner["software"]) * miner_power * (miner_power / collective_power))
+            # print("Collective Power: %s | Miner Power: %s | Mined: %s" % (str(collective_power),str(miner_power),str(mined)))
             now = datetime.datetime.now()
             player["ethereums"] = player["ethereums"] + mined
             addInStats("eth_earned", mined, float)
@@ -592,27 +595,41 @@ def mineEthereum():
                 continue
             elif miner_enroll == 0 and game_started == 1:
                 if minelog == 10 and firststart == 0:
-                    minehistory = {"1": minehistory["2"], "2": minehistory["3"], "3": minehistory["4"], "4": minehistory["5"], "5": minehistory["6"], "6": minehistory["7"], "7": minehistory["8"], "8": minehistory["9"], "9": minehistory["10"], "10": ""}
-                    minehistory[str(minelog)] = str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "] Mined: " + str('{0:.10f}'.format(mined)) + " ETH")
+                    minehistory = {"1": minehistory["2"], "2": minehistory["3"], "3": minehistory["4"],
+                                   "4": minehistory["5"], "5": minehistory["6"], "6": minehistory["7"],
+                                   "7": minehistory["8"], "8": minehistory["9"], "9": minehistory["10"], "10": "",
+                                   str(minelog): str(
+                                       "[" + str(now.hour) + ":" + str(now.minute) + ":" + str(
+                                           now.second) + "] Mined: " + str(
+                                           '{0:.10f}'.format(mined)) + " ETH")}
                 else:
                     if minelog == 1:
                         minelog = 10
                         firststart = 0
-                        minehistory[str(minelog)] = str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "] Mined: " + str('{0:.10f}'.format(mined)) + " ETH")
+                        minehistory[str(minelog)] = str(
+                            "[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "] Mined: " + str(
+                                '{0:.10f}'.format(mined)) + " ETH")
                     else:
                         minelog -= 1
-                        minehistory[str(minelog)] = str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "] Mined: " + str('{0:.10f}'.format(mined)) + " ETH")
+                        minehistory[str(minelog)] = str(
+                            "[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "] Mined: " + str(
+                                '{0:.10f}'.format(mined)) + " ETH")
             else:
                 continue
 
 
-def addNews(stolen,target):
+def addNews(stolen, target):
     global news
     now = datetime.datetime.now()
     if stolen > 0.0:
-        news[str(accident_n)] = { "time": str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "]"), "accident": str("Someone stolen " + str('{0:.10f}'.format(stolen)) + " ETH from " + str(target["company"]) + "'s corporate network PC")}
+        news[str(accident_n)] = {"time": str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "]"),
+                                 "accident": str(
+                                     "Someone stolen " + str('{0:.10f}'.format(stolen)) + " ETH from " + str(
+                                         target["company"]) + "'s corporate network PC")}
     else:
-        news[str(accident_n)] = { "time": str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "]"), "accident": str("Someone hacked " + str(target["company"]) + "'s corporate network PC")}
+        news[str(accident_n)] = {"time": str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "]"),
+                                 "accident": str(
+                                     "Someone hacked " + str(target["company"]) + "'s corporate network PC")}
 
 
 def gameBot():
@@ -634,27 +651,28 @@ def gameBot():
                         break
             bot['ethereums'] += target['ethereums']
             stolen = target['ethereums']
-            #print("\nStolen: " + str(stolen)) #debug info
-            #bot['firewall'] += rnd.randint(bot['firewall'],int(target['firewall'] + bot['firewall']))
-            #target["firewall"] += rnd.randint(bot["firewall"],int(target["firewall"] + bot["firewall"]))
+            # print("\nStolen: " + str(stolen)) #debug info
+            # bot['firewall'] += rnd.randint(bot['firewall'],int(target['firewall'] + bot['firewall']))
+            # target["firewall"] += rnd.randint(bot["firewall"],int(target["firewall"] + bot["firewall"]))
             target["ethereums"] = 0
-            #print("\nNews show: " + str(news_show)) #debug_info 
+            # print("\nNews show: " + str(news_show)) #debug_info
             if news_show == 1:
                 continue
             elif news_show == 0 and game_started == 1:
                 if accident_n == 10 and firststart == 0:
-                    news = {"1": news["2"], "2": news["3"], "3": news["4"], "4": news["5"], "5": news["6"], "6": news["7"], "7": news["8"], "8": news["9"], "9": news["10"], "10": {}}
-                    addNews(stolen,target)
+                    news = {"1": news["2"], "2": news["3"], "3": news["4"], "4": news["5"], "5": news["6"],
+                            "6": news["7"], "7": news["8"], "8": news["9"], "9": news["10"], "10": {}}
+                    addNews(stolen, target)
                 else:
                     if accident_n == 1:
                         accident_n = 10
                         firststart = 0
-                        addNews(stolen,target)
+                        addNews(stolen, target)
                     else:
                         accident_n -= 1
-                        addNews(stolen,target)
+                        addNews(stolen, target)
                 targets[str(target["ip"])] = target
-                #print("accident_n: " + str(accident_n) + " " + str(news[str(accident_n)])) #debug_info
+                # print("accident_n: " + str(accident_n) + " " + str(news[str(accident_n)])) #debug_info
             else:
                 continue
 
@@ -662,59 +680,59 @@ def gameBot():
 def init_dHackOS_Prompt():
     global cmd_msg, cmd_style
     cmd_style = pStyle.from_dict({
-    # User input (default text).
-    '':          '#ffffff',
+        # User input (default text).
+        '': '#ffffff',
 
-    # Prompt.
-    'username': '#21F521',
-    'at':       'ansigreen',
-    'colon':    '#ffffff',
-    'pound':    '#ffffff',
-    'host':     '#21F521', # bg:#444400
-    'path':     'ansicyan underline'
+        # Prompt.
+        'username': '#21F521',
+        'at': 'ansigreen',
+        'colon': '#ffffff',
+        'pound': '#ffffff',
+        'host': '#21F521',  # bg:#444400
+        'path': 'ansicyan underline'
     })
     cmd_msg = [
         ('class:username', str(player["username"])),
-        ('class:at',       '@'),
-        ('class:host',     str(player["ip"])),
-        ('class:colon',    ':'),
+        ('class:at', '@'),
+        ('class:host', str(player["ip"])),
+        ('class:colon', ':'),
     ]
     if player["dev"] == 1 and anticheat == 1:
-        cmd_msg.append(('class:path',     '~/dhackos-dev'))
-        cmd_msg.append(('class:pound',    '# '))
+        cmd_msg.append(('class:path', '~/dhackos-dev'))
+        cmd_msg.append(('class:pound', '# '))
     elif anticheat == 1:
-        cmd_msg.append(('class:path',     '~/dhackos'))
-        cmd_msg.append(('class:pound',    '# '))
+        cmd_msg.append(('class:path', '~/dhackos'))
+        cmd_msg.append(('class:pound', '# '))
     else:
-        cmd_msg.append(('class:path',     '~/dhackos-cheat'))
-        cmd_msg.append(('class:pound',    '# '))
+        cmd_msg.append(('class:path', '~/dhackos-cheat'))
+        cmd_msg.append(('class:pound', '# '))
 
 
-def init_dHackOSf_Prompt(username,ip):
+def init_dHackOSf_Prompt(username, ip):
     global cmdf_msg, cmdf_style
     cmdf_style = pStyle.from_dict({
-    # User input (default text).
-    '':          '#ffffff',
+        # User input (default text).
+        '': '#ffffff',
 
-    # Prompt.
-    'username': '#21F521',
-    'at':       'ansigreen',
-    'colon':    '#ffffff',
-    'pound':    '#ffffff',
-    'host':     '#21F521', # bg:#444400
-    'path':     'ansicyan underline'
+        # Prompt.
+        'username': '#21F521',
+        'at': 'ansigreen',
+        'colon': '#ffffff',
+        'pound': '#ffffff',
+        'host': '#21F521',  # bg:#444400
+        'path': 'ansicyan underline'
     })
     cmdf_msg = [
         ('class:username', str(username)),
-        ('class:at',       '@'),
-        ('class:host',     str(ip)),
-        ('class:colon',    ':'),
-        ('class:path',     '~/'),
-        ('class:pound',    '# ')
+        ('class:at', '@'),
+        ('class:host', str(ip)),
+        ('class:colon', ':'),
+        ('class:path', '~/'),
+        ('class:pound', '# ')
     ]
 
 
-#print(sr + "[" + gr + "DONE" + sr + "]")
+# print(sr + "[" + gr + "DONE" + sr + "]")
 while True:
     try:
         sol = input(yw + "Load save or start new session? (Save/New): " + sr).lower()
@@ -723,7 +741,7 @@ while True:
         exit()
     if sol == "sav" or sol == "save" or sol == "sv" or sol == "sve" or sol == "s":
         time.sleep(1)
-        print(sb + "[" +  Fore.LIGHTGREEN_EX + "SYSTEM LOGIN" + sr + sb + "]" + sr)
+        print(sb + "[" + Fore.LIGHTGREEN_EX + "SYSTEM LOGIN" + sr + sb + "]" + sr)
         try:
             time.sleep(1)
             username = str(input("Please enter your username: "))
@@ -731,8 +749,8 @@ while True:
                 f.close()
             print("Please wait...\n" + gr + "Loading..." + sr)
             time.sleep(1)
-            print(sb + Fore.LIGHTGREEN_EX + "Welcome back " + sr + username + sb +  Fore.LIGHTGREEN_EX + "!")
-            loadGame(username)
+            print(sb + Fore.LIGHTGREEN_EX + "Welcome back " + sr + username + sb + Fore.LIGHTGREEN_EX + "!")
+            gamesave_load(username)
             if success_load == 1:
                 print(" \n" + gr + "Your IP: " + sb + player["ip"] + sr + "\n")
                 print(yw + "Type help for a list of commands\n " + sr)
@@ -742,7 +760,7 @@ while True:
                 break
             else:
                 continue
-        #except Exception as err:
+        # except Exception as err:
         except FileNotFoundError:
             print(rd + "User not found please try again" + sr)
     elif sol == "new" or sol == "nw" or sol == "nwe" or sol == "n" or sol == "nee":
@@ -758,12 +776,16 @@ while True:
         break
 
     elif sol == "debug":
-        player = {"ethereums": 999999999, "ip": "127.0.0.1", "dev": 0, "ipv6": 0, "xp": 999999999, "sentence": 0, "username": "debug", "password": md5("debug", "dhackos")}
-        apps = {"scanner": 999999999, "spam": 999999999, "bruteforce": 999999999, "sdk": 999999999, "ipspoofing": 999999999, "dechyper": 999999999}
-        stats = {"eth_earned": 999999999, "shacked": 999999999, "xp": 999999999, "rep": 999999999, "scans": 999999999, "level": 999999999, "symbols": 999999999,
+        player = {"ethereums": 999999999, "ip": "127.0.0.1", "dev": 0, "ipv6": 0, "xp": 999999999, "sentence": 0,
+                  "username": "debug", "password": md5("debug", "dhackos")}
+        apps = {"scanner": 999999999, "spam": 999999999, "bruteforce": 999999999, "sdk": 999999999,
+                "ipspoofing": 999999999, "dechyper": 999999999}
+        stats = {"eth_earned": 999999999, "shacked": 999999999, "xp": 999999999, "rep": 999999999, "scans": 999999999,
+                 "level": 999999999, "symbols": 999999999,
                  "launches": 999999999, "miners": 999999999, "ownminers": 999999999, "proxy": 999999999}
         miner = {"cpu": 10, "gpu": 10, "ram": 10, "software": 10}
-        bank = {"balance": 999999999, "borrowed": 0, "deposit_rate": rnd.randint(5,9), "credit_rate": rnd.randint(9,13), "max_borrow": 300, "borrow_time": 0}
+        bank = {"balance": 999999999, "borrowed": 0, "deposit_rate": rnd.randint(5, 9),
+                "credit_rate": rnd.randint(9, 13), "max_borrow": 300, "borrow_time": 0}
         addInStats("launches", 1, int)
         genTargetsList()
         anticheat = 1
@@ -779,7 +801,7 @@ dHackOSprmpt = PromptSession()
 while True:
     try:
         if player["sentence"] == 3:
-            player["sentence"] = rnd.randint((player["sentence"] + 1),10)
+            player["sentence"] = rnd.randint((player["sentence"] + 1), 10)
             print(rd + "You has been sentenced for " + str(player["sentence"]) + " years" + sr)
             showVoc(stats, stats_desc, None, gr)
             print(rd + "[GAME OVER]" + sr)
@@ -803,7 +825,8 @@ while True:
             say(" \n" + sb + wt + Back.BLUE + "Ethereum Core v.8 CLI" + sr)
             print(bl + "Connecting..." + sr)
             time.sleep(3)
-            print(bl + sb + "Your balance is: " + Fore.MAGENTA + '{0:.8f}'.format(player["ethereums"]) + Fore.MAGENTA + " ETH" + sr + " \n")
+            print(bl + sb + "Your balance is: " + Fore.MAGENTA + '{0:.8f}'.format(
+                player["ethereums"]) + Fore.MAGENTA + " ETH" + sr + " \n")
         elif cmd == "scan":
             searchTargets(0)
         elif cmd == "upgrade":
@@ -811,7 +834,8 @@ while True:
             showVoc(apps, None, "lvl", gr)
             print(bl + "-=-=-=-=-=-=-=-=-=-=-" + sr)
             while True:
-                print(yw + "Please choose the program which you want to upgrade or type exit\nPrint all to upgrade all programs simultaneously")
+                print(
+                    yw + "Please choose the program which you want to upgrade or type exit\nPrint all to upgrade all programs simultaneously")
                 program = input("What we're going to upgrade today ? " + sr).lower()
                 try:
                     if program != "all" and program != "exit":
@@ -833,7 +857,8 @@ while True:
                                     cost += float(pi * (float(apps[app]) + levels))
                             else:
                                 cost = float(pi * (apps[program] + levels))
-                            print(yw + "Upgrade of " + sb + str(program) + sr + yw + " will cost you " + sb + str(cost) + " ETH." + sr)
+                            print(yw + "Upgrade of " + sb + str(program) + sr + yw + " will cost you " + sb + str(
+                                cost) + " ETH." + sr)
                             if input(yw + "Upgrade (Y/N): " + sr).lower() == "y":
                                 if player["ethereums"] >= cost:
                                     player["ethereums"] = float(float(player["ethereums"]) - float(cost))
@@ -875,9 +900,10 @@ while True:
         elif cmd == "load_list":
             if player_target_list != []:
                 print(gr + "IP list:" + sb)
-                for i in range(0,len(player_target_list)):
+                for i in range(0, len(player_target_list)):
                     print(str(i) + ". " + player_target_list[int(i)])
-                print(Style.NORMAL + "Please choose the IP, launch " + sb + "dHackOSf" + Style.NORMAL + " and enter the IP what you choosen" + sr)
+                print(
+                    Style.NORMAL + "Please choose the IP, launch " + sb + "dHackOSf" + Style.NORMAL + " and enter the IP what you choosen" + sr)
             else:
                 print(rd + "There is no targets in your list ! Type scan to find one." + sr)
         elif cmd == "dhackosf":
@@ -894,7 +920,8 @@ while True:
             df_status = "localhost"
             while True:
                 if target == {}:
-                    print(rd + sb + "Tutorial:\nSelect an IP from your previous scan results\nYou can enter just a number (0-10) of IP in target list\nType exit to stop the dHackOSf !" + gr)
+                    print(
+                        rd + sb + "Tutorial:\nSelect an IP from your previous scan results\nYou can enter just a number (0-10) of IP in target list\nType exit to stop the dHackOSf !" + gr)
                     target_ip = str(input("Please enter the target IP: ").lower())
                     if target_ip == "exit":
                         print("Stopping the dHackOSf..." + sr)
@@ -908,18 +935,21 @@ while True:
                                 target = targets[player_target_list[int(target_ip)]]
                                 target_ip = player_target_list[int(target_ip)]
                             except:
-                                print(rd + "Wrong IP entered or target list is empty !\n" + yw + "Start scan to find a new target list" + sr)
+                                print(
+                                    rd + "Wrong IP entered or target list is empty !\n" + yw + "Start scan to find a new target list" + sr)
                                 break
-                    print("dHackOSf is initializing !\nPlease wait...\n" + yw + "Type help for a list of commands." + gr)
+                    print(
+                        "dHackOSf is initializing !\nPlease wait...\n" + yw + "Type help for a list of commands." + gr)
                     dHackOSf_prmpt = None
                     dHackOSf_prmpt = PromptSession()
-                    init_dHackOSf_Prompt("dhackosf",df_status)
+                    init_dHackOSf_Prompt("dhackosf", df_status)
                     time.sleep(1)
                 else:
                     if scan_done == True and fw_bypassed == True and modules_loaded == True and connected == True:
                         all_done = True
-                        init_dHackOSf_Prompt("dhackosf",df_status)
-                    df_cmd = str(dHackOSf_prmpt.prompt(cmdf_msg, style=cmdf_style, auto_suggest=AutoSuggestFromHistory())).lower()
+                        init_dHackOSf_Prompt("dhackosf", df_status)
+                    df_cmd = str(dHackOSf_prmpt.prompt(cmdf_msg, style=cmdf_style,
+                                                       auto_suggest=AutoSuggestFromHistory())).lower()
                     if df_cmd == "help":
                         showVoc(dhackosf_cmds, None, None, yw)
                         print(rd + "Don't forget to load dhackosf modules" + gr + sb)
@@ -937,7 +967,8 @@ while True:
                     elif df_cmd == "bypass":
                         if fw_bypassed == False and scan_done == True:
                             print(Fore.CYAN + "Bypassing firewall..." + wt)
-                            for i in progressbar.progressbar(range(100)): time.sleep(float((target["firewall"] / apps["ipspoofing"]) / 10))
+                            for i in progressbar.progressbar(range(100)): time.sleep(
+                                float((target["firewall"] / apps["ipspoofing"]) / 10))
                             fw_bypassed = True
                             print(yw + "Now you can connect to the target !" + gr + sb)
                         elif fw_bypassed == True:
@@ -970,19 +1001,23 @@ while True:
                     elif df_cmd == "get_hash":
                         if hash_got == False and all_done == True:
                             print(Fore.CYAN + "Retrieving root hash..." + wt)
-                            for i in progressbar.progressbar(range(100)): time.sleep(float((target["firewall"] / apps["sdk"]) / 10))
+                            for i in progressbar.progressbar(range(100)): time.sleep(
+                                float((target["firewall"] / apps["sdk"]) / 10))
                             hash_got = str(md5(target["ip"], str(rnd.randint(0, 10000))))
                             print(gr + "Success !\nHash: " + sb + hash_got)
                             print(yw + "Now you can start bruteforce process !" + gr + sb)
                         elif hash_got != False:
                             print(rd + "Hash has been already retrieved !" + gr + sb)
                         else:
-                            print(rd + "Please load modules first !\nThen scan target\nThen bypass the firewall\nThen - connect and get the hash" + gr + sb)
+                            print(
+                                rd + "Please load modules first !\nThen scan target\nThen bypass the firewall\nThen - connect and get the hash" + gr + sb)
                     elif df_cmd == "bruteforce":
                         if all_done == True and hash_got != False and hash_got != True:
                             print("Bruteforcing..." + wt)
-                            for i in progressbar.progressbar(range(100)): time.sleep(float(((pi + target["firewall"]) / apps["bruteforce"]) / 10))
-                            hack_chance = (apps["bruteforce"] + apps["sdk"] + apps["ipspoofing"] + apps["dechyper"]) // 4
+                            for i in progressbar.progressbar(range(100)): time.sleep(
+                                float(((pi + target["firewall"]) / apps["bruteforce"]) / 10))
+                            hack_chance = (apps["bruteforce"] + apps["sdk"] + apps["ipspoofing"] + apps[
+                                "dechyper"]) // 4
                             fw_vs_player = target["firewall"] - hack_chance
                             hack_done = True
                             hash_got = True
@@ -991,7 +1026,7 @@ while True:
                             print(rd + "Please, get the hash first !" + gr + sb)
                         else:
                             print(rd + "Hash is already bruteforced !" + gr + sb)
-                    elif df_cmd == "shell" and hack_done == True:  
+                    elif df_cmd == "shell" and hack_done == True:
                         if hack_chance >= fw_vs_player and hack_done == True:
                             print(sb + "Successful !")
                             print("Root access granted !")
@@ -999,24 +1034,29 @@ while True:
                             addInStats("xp", xp, int)
                             player["xp"] = player["xp"] + xp
                             connection = 1
-                            trace = threading.Thread(target=traceStart) #target balance reset
+                            trace = threading.Thread(target=traceStart)  # target balance reset
                             trace.daemon = True
                             trace.start()
-                            print(yw + "You have " + str(tracing) + "sec before local admin trace you ! (Connection will be lost and ETHs seized by FBI)" + gr)
+                            print(yw + "You have " + str(
+                                tracing) + "sec before local admin trace you ! (Connection will be lost and ETHs seized by FBI)" + gr)
                             dHackOSf_prmpt = None
                             dHackOSf_prmpt = PromptSession()
-                            init_dHackOSf_Prompt("root",df_status)
+                            init_dHackOSf_Prompt("root", df_status)
                             while True:
-                                tcmd = str(dHackOSf_prmpt.prompt(cmdf_msg, style=cmdf_style, auto_suggest=AutoSuggestFromHistory())).lower()
+                                tcmd = str(dHackOSf_prmpt.prompt(cmdf_msg, style=cmdf_style,
+                                                                 auto_suggest=AutoSuggestFromHistory())).lower()
                                 if tracing == 0 or tracing <= 1:
-                                    print(rd + "Connection was refused by local administrator...\nAttempting to revive remote session...")
+                                    print(
+                                        rd + "Connection was refused by local administrator...\nAttempting to revive remote session...")
                                     time.sleep(1)
                                     player["ethereums"] = 0
                                     stats["miners"] = 0
                                     player["sentence"] += 1
                                     addInStats("shacked", 1, int)
                                     connection = 0
-                                    print("[dHackOSf] ERROR. FIREWALL IS BLOCKING SESSION !" + yw + "\n[dHackOS Corp] Your ETHs was seized by the FBI and injected miners deleted.\nYou will be sentenced after 3 FBI warnings.\nYou have " + str(player["sentence"]) + " warnings. Be careful." + sr)
+                                    print(
+                                        "[dHackOSf] ERROR. FIREWALL IS BLOCKING SESSION !" + yw + "\n[dHackOS Corp] Your ETHs was seized by the FBI and injected miners deleted.\nYou will be sentenced after 3 FBI warnings.\nYou have " + str(
+                                            player["sentence"]) + " warnings. Be careful." + sr)
                                     break
                                 elif tcmd == "help":
                                     print(rd + "-==CONSOLE USING IS NOT RECOMMENDED FOR EMPLOYEE==-" + gr + sb)
@@ -1025,15 +1065,19 @@ while True:
                                 elif tcmd == "wallet":
                                     print(rd + "-==CONSOLE USING IS NOT RECOMMENDED FOR EMPLOYEE==-" + gr + sb)
                                     print("Your balance is: " + str(target["ethereums"]) + " ETH" + rd)
-                                    print(".::dHackOSf detected an Ethereum address field::.\nWallet dechypering..." + wt)
-                                    for i in progressbar.progressbar(range(100)): time.sleep(float(((pi + target["firewall"]) / apps["dechyper"]) / 10))
-                                    print(".::dHackOSf injected code which changes all typed addresses with your for this input field. Just press enter::." + yw)
+                                    print(
+                                        ".::dHackOSf detected an Ethereum address field::.\nWallet dechypering..." + wt)
+                                    for i in progressbar.progressbar(range(100)): time.sleep(
+                                        float(((pi + target["firewall"]) / apps["dechyper"]) / 10))
+                                    print(
+                                        ".::dHackOSf injected code which changes all typed addresses with your for this input field. Just press enter::." + yw)
                                     wcmd = input("Please enter the Ethereum wallet address to send money to: ")
                                     print(rd + ".::Replacing addresses::." + wt)
                                     for i in progressbar.progressbar(range(100)): time.sleep(0.03)
                                     player["ethereums"] = player["ethereums"] + target["ethereums"]
                                     addInStats("eth_earned", target["ethereums"], float)
-                                    print(gr + "Transfer successful !" + wt + str(target["ethereums"]) + yw + "ETH " + sr + "transferred." + sr)
+                                    print(gr + "Transfer successful !" + wt + str(
+                                        target["ethereums"]) + yw + "ETH " + sr + "transferred." + sr)
                                     target["ethereums"] = 0.0
                                     print("Closing wallet..." + gr)
                                     print(rd + "-==CONSOLE USING IS NOT RECOMMENDED FOR EMPLOYEE==-" + gr)
@@ -1043,13 +1087,16 @@ while True:
                                     player["ethereums"] = player["ethereums"] + earn
                                     addInStats("shacked", 1, int)
                                     addInStats("eth_earned", earn, float)
-                                    print(gr + "Success. Earned from spam: " + rd + str(earn) + " " + Back.YELLOW + "ETH" + sr)
+                                    print(gr + "Success. Earned from spam: " + rd + str(
+                                        earn) + " " + Back.YELLOW + "ETH" + sr)
                                     print(rd + "[dHackOSf] Console closed ! Disconnecting..." + sr)
                                     break
                                 elif tcmd == "developer_mode":
-                                    print(rd + "[Employee OS v.8.1 Pro] DEVELOPER MODE ACCESSED ! YOUR EMPLOYER WAS NOTICED !\nBlocking PC...\nClosing Internet connections..." + wt)
+                                    print(
+                                        rd + "[Employee OS v.8.1 Pro] DEVELOPER MODE ACCESSED ! YOUR EMPLOYER WAS NOTICED !\nBlocking PC...\nClosing Internet connections..." + wt)
                                     for i in progressbar.progressbar(range(100)): time.sleep(0.02)
-                                    print("[dHackOSf] CONNECTION FAILURE !\n[dHackOSf] REMOTE CONTROL TROJAN DELETED LOGS AND SELF-DELETED" + sr)
+                                    print(
+                                        "[dHackOSf] CONNECTION FAILURE !\n[dHackOSf] REMOTE CONTROL TROJAN DELETED LOGS AND SELF-DELETED" + sr)
                                     break
                                 elif tcmd == "inject":
                                     print(rd + "dHackOSf miner injector v.0.1-r3" + wt)
@@ -1083,10 +1130,11 @@ while True:
                     else:
                         print(rd + "Unknown input !" + gr)
         elif cmd == "shutdown":
-            sol = input(yw+ sb + "Save session? (Yes/No): " + sr).lower()
+            sol = input(yw + sb + "Save session? (Yes/No): " + sr).lower()
             if sol == "yes" or sol == "ys" or sol == "y":
                 time.sleep(1)
-                print(rd + "Stopping all processes...\n" + yw + "Saving session...\n" + wt + sb + "Disconnected..." + sr)
+                print(
+                    rd + "Stopping all processes...\n" + yw + "Saving session...\n" + wt + sb + "Disconnected..." + sr)
                 saveGame(str(player["username"]))
             else:
                 print(rd + "Stopping all processes...\n" + wt + sb + "Disconnected..." + sr)
@@ -1164,22 +1212,24 @@ while True:
             print(gr + "Last 10 enrollments from your miner" + sr)
             miner_enroll = 1
             try:
-                for i in range(1,11):
+                for i in range(1, 11):
                     print(gr + sb + str(i) + Style.NORMAL + minehistory[str(i)] + sr)
                 miner_enroll = 0
             except:
-                print(yw + "Please wait for 10 seconds, miner is connecting to the mining pool transaction history..." + sr)
+                print(
+                    yw + "Please wait for 10 seconds, miner is connecting to the mining pool transaction history..." + sr)
                 miner_enroll = 0
         elif cmd == "news":
             print(gr + "Latest cyber security news:" + sr)
             news_show = 1
             try:
-                for i in range(1,11):
+                for i in range(1, 11):
                     current_news = news[str(i)]
                     print(gr + sb + current_news["time"] + Style.NORMAL + current_news["accident"] + sr)
                 news_show = 0
             except Exception as e:
-                print(yw + "Please wait for " + str(int(accident_n * 5)) + " seconds, news service is initializing..." + sr)
+                print(yw + "Please wait for " + str(
+                    int(accident_n * 5)) + " seconds, news service is initializing..." + sr)
                 news_show = 0
             news_show = 0
         elif cmd == "version":
@@ -1190,7 +1240,8 @@ while True:
             target = {}
             while True:
                 if target == {}:
-                    print(rd + sb + "Tutorial:\nSelect an IP from your previous scan results\nType exit to stop the dHackOS Scanner !" + gr)
+                    print(
+                        rd + sb + "Tutorial:\nSelect an IP from your previous scan results\nType exit to stop the dHackOS Scanner !" + gr)
                     target_ip = str(input("Please enter the target IP: "))
                     if target_ip == "exit":
                         print("Stopping the dHackOS Scanner..." + sr)
@@ -1227,12 +1278,13 @@ while True:
                             if minecp == "all":
                                 for minecomp in miner:
                                     if miner[minecomp] < 10:
-                                        #cost += float(pi * (float(miner_cost[str(miner[minecomp])]) + 1))
+                                        # cost += float(pi * (float(miner_cost[str(miner[minecomp])]) + 1))
                                         cost += float(pi * (float(miner[minecomp]) + 1))
                                     else:
-                                        print(rd + "Max level reached for:\n%s" % miner_components[minecomp + str(miner[minecomp])] + gr)
+                                        print(rd + "Max level reached for:\n%s" % miner_components[
+                                            minecomp + str(miner[minecomp])] + gr)
                             else:
-                                #cost += float(pi * (float(miner_cost[str(miner[minecp])]) + 1))
+                                # cost += float(pi * (float(miner_cost[str(miner[minecp])]) + 1))
                                 cost += float(pi * (float(miner[minecp]) + 1))
                             print("Upgrade of " + str(minecp) + " will cost you " + str(cost) + " ETH.")
                             if input("Upgrade (Y/N): ").lower() == "y":
@@ -1242,12 +1294,16 @@ while True:
                                         for minecomp in miner:
                                             if miner[minecomp] < 10:
                                                 miner[minecomp] += 1
-                                                print(Style.NORMAL + "New %s %s" % (miner_desc[minecomp], miner_components[minecomp + str(miner[minecomp])]) + sb)
+                                                print(Style.NORMAL + "New %s %s" % (miner_desc[minecomp],
+                                                                                    miner_components[minecomp + str(
+                                                                                        miner[minecomp])]) + sb)
                                             else:
-                                                print(rd + "There is no available upgrades for:\n%s" % miner_components[minecomp + str(miner[minecomp])] + gr)
+                                                print(rd + "There is no available upgrades for:\n%s" % miner_components[
+                                                    minecomp + str(miner[minecomp])] + gr)
                                     else:
                                         miner[minecp] += 1
-                                        print("New %s %s" % (miner_desc[str(minecp)], miner_components[minecp + str(miner[minecp])]))
+                                        print("New %s %s" % (
+                                            miner_desc[str(minecp)], miner_components[minecp + str(miner[minecp])]))
                                     print(sr + "[" + sb + gr + "SUCCESS" + sr + "]" + gr + sb)
                                     break
                                 else:
@@ -1272,7 +1328,7 @@ while True:
             try:
                 cost = float(0)
                 for minecomp in miner:
-                    #cost += float(pi * (float(miner_cost[str(miner[minecomp])]) + 1))
+                    # cost += float(pi * (float(miner_cost[str(miner[minecomp])]) + 1))
                     cost += float(pi * (float(miner[minecomp]) + 1) * stats["level"])
                 miners = int(input(sb + gr + "How many miners you want to buy? (Numeric): " + sr))
                 cost = cost * stats["ownminers"] * miners
@@ -1295,48 +1351,54 @@ while True:
         elif cmd == "miner_info":
             while True:
                 for minecomp in miner:
-                    print(gr + "%s %s" % (miner_desc[minecomp],miner_components[minecomp + str(miner[minecomp])]))
+                    print(gr + "%s %s" % (miner_desc[minecomp], miner_components[minecomp + str(miner[minecomp])]))
                 if miner_power_status == "on":
-                    print("Temperature: %d °C\nCPU Load: %s %%" % (rnd.randint(65,75),str('{0:.2f}'.format(rnd.uniform(90,99)))) + sr)
+                    print("Temperature: %d °C\nCPU Load: %s %%" % (
+                        rnd.randint(65, 75), str('{0:.2f}'.format(rnd.uniform(90, 99)))) + sr)
                     break
                 else:
-                    print("Temperature: %d °C\nCPU Load: %s %%" % (rnd.randint(65,70), str('{0:.2f}'.format(rnd.uniform(78, 89)))) + sr)
+                    print("Temperature: %d °C\nCPU Load: %s %%" % (
+                        rnd.randint(65, 70), str('{0:.2f}'.format(rnd.uniform(78, 89)))) + sr)
                     break
         elif cmd == "bank":
             if enable_sound == "yes" or enable_sound == "y":
                 bankSound()
             else:
                 bank_nosound()
-            #bank = {"balance": 0, "borrowed": 0, "deposit_rate": rnd.randint(5,9), "credit_rate": rnd.randint(9,13), "max_borrow": 300, "borrow_time": 0}
+            # bank = {"balance": 0, "borrowed": 0, "deposit_rate": rnd.randint(5,9), "credit_rate": rnd.randint(9,13), "max_borrow": 300, "borrow_time": 0}
             while True:
                 bcmd = str(input("BankCLI (main) > ")).lower()
                 if bcmd == "help":
-                    showVoc(bank_help,None,None,yw)
+                    showVoc(bank_help, None, None, yw)
                 elif bcmd == "info":
-                    print(gr + "Your IP: %s\nBank balance: %s\nDeposit rate: %d%%/hour" % (player["ip"],str('{0:.8f}'.format(bank["balance"])),bank["deposit_rate"]) + sr)
-                #elif bcmd == "borrow":
-                    #while True:
-                        #print(yw + "\nMax amount of ETH which you can borrow: %s ETH\nYour current ETH balance: %s ETH\nBank balance: %s ETH" % (str(str('{0:.6f}'.format(bank["max_borrow"]))),str(str('{0:.6f}'.format(player["ethereums"]))),str(str('{0:.6f}'.format(bank["balance"])))) + sr)
-                        #try:
-                            #borrow = float(input("How many ETH you want to borrow ?(Numeric): "))
-                            #if borrow <= bank["max_borrow"] and bank["borrowed"] == 0:
-                                #player["ethereums"] += borrow
-                                #bank["borrowed"] += borrow
-                                #print(gr + "Successful !" + sr)
-                                #break
-                            #elif bank["borrowed"] > 0:
-                                #print(rd + "Borrow exists !\nOperation aborted !" + sr)
-                            #elif borrow == "exit":
-                                #break
-                            #else:
-                                #print(rd + "Insufficient balance !\nOperation aborted !" + sr)
-                                #break
-                        #except:
-                            #print(rd + "Non-numeric value entered !\nOperation aborted !" + sr)
-                            #break
+                    print(gr + "Your IP: %s\nBank balance: %s\nDeposit rate: %d%%/hour" % (
+                        player["ip"], str('{0:.8f}'.format(bank["balance"])), bank["deposit_rate"]) + sr)
+                # elif bcmd == "borrow":
+                # while True:
+                # print(yw + "\nMax amount of ETH which you can borrow: %s ETH\nYour current ETH balance: %s ETH\nBank balance: %s ETH" % (str(str('{0:.6f}'.format(bank["max_borrow"]))),str(str('{0:.6f}'.format(player["ethereums"]))),str(str('{0:.6f}'.format(bank["balance"])))) + sr)
+                # try:
+                # borrow = float(input("How many ETH you want to borrow ?(Numeric): "))
+                # if borrow <= bank["max_borrow"] and bank["borrowed"] == 0:
+                # player["ethereums"] += borrow
+                # bank["borrowed"] += borrow
+                # print(gr + "Successful !" + sr)
+                # break
+                # elif bank["borrowed"] > 0:
+                # print(rd + "Borrow exists !\nOperation aborted !" + sr)
+                # elif borrow == "exit":
+                # break
+                # else:
+                # print(rd + "Insufficient balance !\nOperation aborted !" + sr)
+                # break
+                # except:
+                # print(rd + "Non-numeric value entered !\nOperation aborted !" + sr)
+                # break
                 elif bcmd == "deposit":
                     while True:
-                        print(yw + "\nYour current ETH balance: %s ETH\nBank balance: %s ETH\nType 'all' to deposit all ETH\n" % (str(str('{0:.8f}'.format(player["ethereums"]))),str(str('{0:.8f}'.format(bank["balance"])))) + sr)
+                        print(
+                            yw + "\nYour current ETH balance: %s ETH\nBank balance: %s ETH\nType 'all' to deposit all ETH\n" % (
+                                str(str('{0:.8f}'.format(player["ethereums"]))),
+                                str(str('{0:.8f}'.format(bank["balance"])))) + sr)
                         try:
                             try:
                                 deposit = input("How many ETH you want to deposit ?(Numeric): ")
@@ -1352,9 +1414,10 @@ while True:
                                 player["ethereums"] -= deposit
                                 print(yw + "Saving your money...")
                                 time.sleep(1)
-                                print(gr + "Successful! " + sr + str('{0:.8f}'.format(deposit) + "ETH " + yw + "deposited.\n" + sr))
+                                print(gr + "Successful! " + sr + str(
+                                    '{0:.8f}'.format(deposit) + "ETH " + yw + "deposited.\n" + sr))
                                 break
-                            
+
                             elif deposit == "exit":
                                 break
                             else:
@@ -1366,7 +1429,9 @@ while True:
                             break
                 elif bcmd == "withdraw":
                     while True:
-                        print(yw + "\nYour current ETH balance: %s ETH\nBank balance: %s ETH" % (str(str('{0:.8f}'.format(player["ethereums"]))),str(str('{0:.8f}'.format(bank["balance"])))) + sr)
+                        print(yw + "\nYour current ETH balance: %s ETH\nBank balance: %s ETH" % (
+                            str(str('{0:.8f}'.format(player["ethereums"]))),
+                            str(str('{0:.8f}'.format(bank["balance"])))) + sr)
                         try:
                             withdraw = float(input("How many ETH you want to withdraw ?(Numeric): "))
                             if withdraw <= bank["balance"]:
@@ -1405,7 +1470,7 @@ while True:
                         bet_event = str(input("Next number will be lower or higher than 50 ?(lo/hi): ")).lower()
                         if bet_event == "hi" or bet_event == "lo" and bet >= 0:
                             while True:
-                                num = rnd.randint(0,100)
+                                num = rnd.randint(0, 100)
                                 if num != 50:
                                     break
                             print("Number is: %d" % num)
@@ -1434,7 +1499,8 @@ while True:
             player["ethereums"] += lanhunt.mainLanHuntCLI()
         elif cmd == "debug":
             f = open("variables_dbg_out.txt", "w")
-            f.write(str("\n=========LOCALS=========\n" + str(locals()) + "\n" + "=========GLOBALS=========\n" + str(globals()) + "\n" + "=========DIR=========\n" + str(dir())))
+            f.write(str("\n=========LOCALS=========\n" + str(locals()) + "\n" + "=========GLOBALS=========\n" + str(
+                globals()) + "\n" + "=========DIR=========\n" + str(dir())))
             f.close()
         elif cmd == "miner_stat":
             time.sleep(1)
@@ -1452,7 +1518,7 @@ while True:
                 print(rd + "Unknown input. Please try again" + sr)
         elif cmd == "clear":
             clearScreen()
-            
+
         else:
             print(rd + "Unknown input. Please try again" + sr)
     except KeyboardInterrupt:
