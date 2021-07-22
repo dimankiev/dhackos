@@ -159,7 +159,7 @@ class lanhunt:
             if lh_cmd == "":
                 continue
             elif lh_cmd == "exit":
-                print(Fore.YELLOW + "All ETH is transfered to your main wallet")
+                print(Fore.YELLOW + "All ETH is transfered to your main wallet. " + str(balance) + "ETH Transfered to your wallet." + sr)
                 print(Fore.RED + "Closing connections...\nExiting..." + sr)
                 drone_task = "exit"
                 break
