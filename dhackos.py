@@ -29,7 +29,7 @@ except Exception as e:
     exit()
 
 from core.game.utils import ip as ip_generator
-from core.game.utils.strings import Strings
+from core.game.utils import strings as _strings
 from core.game.programs.lanhunter import lanhunt
 
 sr = Style.RESET_ALL
@@ -63,8 +63,7 @@ companies = ["BG", "Namlung", "Benovo", "Rony", "nSidia", "FBI", "CIA", "Calve",
              "Outagram", "DEFCON", "SCP", "HackNet", "Python", "Foogle Project Ni", "DDoS Booster Ltd.", "LMAO",
              "NoTeam", "ST corp.", "dHackOS"]
 
-
-strings = Strings()
+strings = _strings.Strings()
 
 debug_info = {
     "Version :": str("\n  dHackOS v." + version),
@@ -325,7 +324,7 @@ def genTarget(k, ip):
     target = {"ip": ip,
               "ethereums": rnd.uniform((apps["bruteforce"] + apps["sdk"] + apps["ipspoofing"] + apps["dechyper"]) // 4,
                                        pi * float(target["firewall"]) + float(k)),
-              "company": companies[rnd.randint(0, int(len(companies) - 1))], "port": rnd.randint(1, 65535),
+              "company": _strings.companies[rnd.randint(0, int(len(_strings.companies) - 1))], "port": rnd.randint(1, 65535),
               "service": "OpenSSH",
               "firewall": target["firewall"], "k": k, "miner_injected": 0, "proxy": 0}
     return target

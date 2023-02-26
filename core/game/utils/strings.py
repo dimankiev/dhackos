@@ -37,8 +37,15 @@ class Strings:
             self.__strings[section] = {}
             self.__strings[section].update(parsed)
 
-    def get(self, section: str, key: str):
+    def get(self, section: str, key: str) -> str:
         return self.__strings.get(section).get(key)
 
-    def get_section(self, section: str):
+    def get_section(self, section: str) -> dict:
         return self.__strings.get(section)
+
+
+companies = ["BG", "Namlung", "Benovo", "Rony", "nSidia", "FBI", "CIA", "Calve", "Babebook", "Foogle",
+             "Introversion Software", "Memla Rotors", "aaa114-project", "Fibrosoft", "MotoLearn Inc.", "Pharma",
+             "Testle", "Unknown", "RoogeeR", "Ethereum", "Bitcoin", "Entel", "AMB", "ASIC", "Telegram", "LinkedOut",
+             "Outagram", "DEFCON", "SCP", "HackNet", "Python", "Foogle Project Ni", "DDoS Booster Ltd.", "LMAO",
+             "NoTeam", "ST corp.", "dHackOS"]
