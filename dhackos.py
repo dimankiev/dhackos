@@ -28,7 +28,9 @@ except Exception as e:
     print(str(e))
     exit()
 
-from prog.lanhunter import lanhunt
+from core.game.utils import ip as ip_generator
+from core.game.utils.strings import Strings
+from core.game.programs.lanhunter import lanhunt
 
 sr = Style.RESET_ALL
 sb = Style.BRIGHT
@@ -62,39 +64,7 @@ companies = ["BG", "Namlung", "Benovo", "Rony", "nSidia", "FBI", "CIA", "Calve",
              "NoTeam", "ST corp.", "dHackOS"]
 
 
-def strings_load(strings_var: dict, strings_path: str):
-    with open(strings_path, 'r') as file:
-        content = file.read()
-        strings_data = json.loads(content)
-        strings_var.update(strings_data)
-
-
-bank_help = {}
-strings_load(bank_help, './core/strings/commands/bank.json')
-
-about = {}
-strings_load(about, './core/strings/about_info.json')
-
-cmds = {}
-strings_load(cmds, './core/strings/commands/system.json')
-
-dhackosf_cmds = {}
-strings_load(dhackosf_cmds, './core/strings/commands/dhackosf.json')
-
-stats_desc = {}
-strings_load(stats_desc, './core/strings/stats.json')
-
-miner_desc = {}
-strings_load(miner_desc, './core/strings/miner/minerdesc.json')
-
-miner_components = {}
-strings_load(miner_components, './core/strings/miner/components.json')
-
-tcmds = {}
-strings_load(tcmds, './core/strings/targets/t_commands.json')
-
-target_desc = {}
-strings_load(target_desc, './core/strings/targets/targetdesc.json')
+strings = Strings()
 
 debug_info = {
     "Version :": str("\n  dHackOS v." + version),
@@ -106,25 +76,13 @@ debug_info = {
 }
 
 
-def genIPv4():
-    ip = str(str(rnd.randint(172, 192)) + "." + str(rnd.randint(0, 255)) + "." + str(rnd.randint(0, 255)) + "." + str(
-        rnd.randint(1, 255)))
-    return ip
-
-
-def genIPv6():
-    M = 16 ** 4
-    ip = "fd39:fffd:" + ":".join(("%x" % rnd.randint(0, M) for i in range(6)))
-    return ip
-
-
-def genIP():
+def gen_ip():
     if sol == "New" or sol == "new":
-        ip = genIPv4()
+        ip = ip_generator.gen_ip_v4()
     elif player["ipv6"] == 1:
-        ip = genIPv6()
+        ip = ip_generator.gen_ip_v6()
     else:
-        ip = genIPv4()
+        ip = ip_generator.gen_ip_v4()
     return ip
 
 
@@ -262,7 +220,7 @@ def newGame():
         global player, apps, stats, minehistory, news, miner, bank, anticheat
         news = {}
         player = {"ethereums": 0.0, "ip": "127.0.0.1", "dev": 0, "ipv6": 0, "xp": 0, "sentence": 0}
-        player["ip"] = str(genIP())
+        player["ip"] = str(gen_ip())
         player["username"] = str(input("Please enter your username: "))
         if player["username"] == "debug":
             print(rd + "Username DEBUG is not available !" + sr)
@@ -383,7 +341,7 @@ def genTargetsList():
         scan_percent = float(i) / 100
         if scan_percent == 99.99:
             scan_percent = 100.0
-        ip = str(genIP())
+        ip = str(gen_ip())
         target = genTarget(i, ip)
         targets[ip] = target
         ips.append(str(ip))
@@ -467,7 +425,7 @@ def changeIPv(ipv):
         else:
             print("Connecting to IPv6 network..." + wt)
         for i in progressbar.progressbar(range(100)): time.sleep(0.02)
-        player["ip"] = genIP()
+        player["ip"] = gen_ip()
         print(sr + "[" + gr + sb + "SUCCESS" + sr + "]")
         cmd_msg.pop(2)
         cmd_msg.insert(2, ('class:host', str(player["ip"])))
@@ -803,13 +761,13 @@ while True:
         if player["sentence"] == 3:
             player["sentence"] = rnd.randint((player["sentence"] + 1), 10)
             print(rd + "You has been sentenced for " + str(player["sentence"]) + " years" + sr)
-            showVoc(stats, stats_desc, None, gr)
+            showVoc(stats, strings.get_section('stats_desc'), None, gr)
             print(rd + "[GAME OVER]" + sr)
             saveGame(str(player["username"]))
             break
         elif player["sentence"] > 3:
             print(rd + "You has been sentenced for " + str(player["sentence"]) + " years" + sr)
-            showVoc(stats, stats_desc, None, gr)
+            showVoc(stats, strings.get_section('stats_desc'), None, gr)
             print(rd + "[GAME OVER]" + sr)
             saveGame(str(player["username"]))
             break
@@ -818,7 +776,7 @@ while True:
         levelCheck()
         addInStats("symbols", len(cmd), int)
         if cmd == "help":
-            showVoc(cmds, None, None, yw)
+            showVoc(strings.get_section('cmds'), None, None, yw)
         elif cmd == "apps":
             showVoc(apps, None, "lvl", yw)
         elif cmd == "balance":
@@ -884,7 +842,7 @@ while True:
                 else:
                     print(rd + "Unknown input !" + gr)
         elif cmd == "stats":
-            showVoc(stats, stats_desc, None, Fore.CYAN)
+            showVoc(stats, strings.get_section('stats_desc'), None, Fore.CYAN)
         elif cmd == "rescan_subnet":
             print(Fore.CYAN + "Scanning subnet...")
             sub_gen = threading.Thread(target=genTargetsList)
@@ -951,7 +909,7 @@ while True:
                     df_cmd = str(dHackOSf_prmpt.prompt(cmdf_msg, style=cmdf_style,
                                                        auto_suggest=AutoSuggestFromHistory())).lower()
                     if df_cmd == "help":
-                        showVoc(dhackosf_cmds, None, None, yw)
+                        showVoc(strings.get_section('dhackosf_cmds'), None, None, yw)
                         print(rd + "Don't forget to load dhackosf modules" + gr + sb)
                     elif df_cmd == "connect":
                         if fw_bypassed == True and scan_done == True and connected == False:
@@ -979,7 +937,7 @@ while True:
                         if scan_done == False and modules_loaded == True:
                             print(gr + "Scanning target..." + wt)
                             for i in progressbar.progressbar(range(100)): time.sleep(0.02)
-                            showVoc(target, target_desc, None, gr)
+                            showVoc(target, strings.get_section('target_desc'), None, gr)
                             print(yw + "Now you can bypass the firewall !" + gr + sb)
                             scan_done = True
                         elif scan_done == True:
@@ -1060,7 +1018,7 @@ while True:
                                     break
                                 elif tcmd == "help":
                                     print(rd + "-==CONSOLE USING IS NOT RECOMMENDED FOR EMPLOYEE==-" + gr + sb)
-                                    showVoc(tcmds, None, None, gr)
+                                    showVoc(strings.get_section('tcmds'), None, None, gr)
                                     print(rd + sb + "-==CONSOLE USING IS NOT RECOMMENDED FOR EMPLOYEE==-" + gr + sb)
                                 elif tcmd == "wallet":
                                     print(rd + "-==CONSOLE USING IS NOT RECOMMENDED FOR EMPLOYEE==-" + gr + sb)
@@ -1194,7 +1152,7 @@ while True:
                 print(yw + "Reconnecting..." + wt)
                 time.sleep(1)
                 for i in progressbar.progressbar(range(100)): time.sleep(0.03)
-                player["ip"] = genIPv4()
+                player["ip"] = ip_generator.gen_ip_v4()()
                 cmd_msg.pop(2)
                 cmd_msg.insert(2, ('class:host', str(player["ip"])))
                 time.sleep(1)
@@ -1233,7 +1191,7 @@ while True:
                 news_show = 0
             news_show = 0
         elif cmd == "version":
-            showVoc(about, None, None, gr)
+            showVoc(strings.get_section('about'), None, None, gr)
         elif cmd == "debug_info":
             showVoc(debug_info, None, None, Fore.MAGENTA)
         elif cmd == "scan_target":
@@ -1257,7 +1215,7 @@ while True:
                 else:
                     print(gr + "Scanning target..." + wt)
                     for i in progressbar.progressbar(range(100)): time.sleep(0.02)
-                    showVoc(target, target_desc, None, gr)
+                    showVoc(target, strings.get_section('target_desc'), None, gr)
                     break
         elif cmd == "miner_shop":
             print(" \n" + wt + Back.GREEN + "dHackOS Miner CLI v.0.9-r.3" + sr)
@@ -1281,8 +1239,7 @@ while True:
                                         # cost += float(pi * (float(miner_cost[str(miner[minecomp])]) + 1))
                                         cost += float(pi * (float(miner[minecomp]) + 1))
                                     else:
-                                        print(rd + "Max level reached for:\n%s" % miner_components[
-                                            minecomp + str(miner[minecomp])] + gr)
+                                        print(rd + "Max level reached for:\n%s" % strings.get('miner_components', minecomp + str(miner[minecomp])) + gr)
                             else:
                                 # cost += float(pi * (float(miner_cost[str(miner[minecp])]) + 1))
                                 cost += float(pi * (float(miner[minecp]) + 1))
@@ -1294,16 +1251,21 @@ while True:
                                         for minecomp in miner:
                                             if miner[minecomp] < 10:
                                                 miner[minecomp] += 1
-                                                print(Style.NORMAL + "New %s %s" % (miner_desc[minecomp],
-                                                                                    miner_components[minecomp + str(
-                                                                                        miner[minecomp])]) + sb)
+                                                print(Style.NORMAL + "New %s %s" % (strings.get('miner_desc', minecomp),
+                                                                                    strings.get('miner_components', minecomp + str(
+                                                                                        miner[minecomp])) + sb))
                                             else:
-                                                print(rd + "There is no available upgrades for:\n%s" % miner_components[
-                                                    minecomp + str(miner[minecomp])] + gr)
+                                                print(rd + "There is no available upgrades for:\n%s" %
+                                                      strings.get('miner_components', minecomp + str(miner[minecomp]) +
+                                                                  gr))
                                     else:
                                         miner[minecp] += 1
                                         print("New %s %s" % (
-                                            miner_desc[str(minecp)], miner_components[minecp + str(miner[minecp])]))
+                                            strings.get('miner_desc', str(minecp)), strings.get('miner_components',
+                                                                                                minecp +
+                                                                                                str(miner[minecp])
+                                                                                                )
+                                        ))
                                     print(sr + "[" + sb + gr + "SUCCESS" + sr + "]" + gr + sb)
                                     break
                                 else:
@@ -1351,7 +1313,11 @@ while True:
         elif cmd == "miner_info":
             while True:
                 for minecomp in miner:
-                    print(gr + "%s %s" % (miner_desc[minecomp], miner_components[minecomp + str(miner[minecomp])]))
+                    print(gr + "%s %s" % (strings.get('miner_desc', minecomp), strings.get('miner_components',
+                                                                                           minecomp + str(miner[minecomp])
+                                                                                           )
+                                          )
+                          )
                 if miner_power_status == "on":
                     print("Temperature: %d °C\nCPU Load: %s %%" % (
                         rnd.randint(65, 75), str('{0:.2f}'.format(rnd.uniform(90, 99)))) + sr)
@@ -1369,7 +1335,7 @@ while True:
             while True:
                 bcmd = str(input("BankCLI (main) > ")).lower()
                 if bcmd == "help":
-                    showVoc(bank_help, None, None, yw)
+                    showVoc(strings.get_section('bank_help'), None, None, yw)
                 elif bcmd == "info":
                     print(gr + "Your IP: %s\nBank balance: %s\nDeposit rate: %d%%/hour" % (
                         player["ip"], str('{0:.8f}'.format(bank["balance"])), bank["deposit_rate"]) + sr)

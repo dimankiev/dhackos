@@ -1,7 +1,0 @@
-{
-    "help": " - List available commands",
-    "deposit": " - Deposit ETH to bank balance",
-    "withdraw": " - Withdraw ETH from bank balance",
-    "info": " - Show your bank account info",
-    "exit": " - Close the bank CLI"
-}

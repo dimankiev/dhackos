@@ -1,0 +1,4 @@
+{
+    "ip": "IP address:", "firewall": "Firewall:", "ethereums": "Ethereum balance:", "company": "Company:",
+    "port": "Port:", "service": "Service:", "k": "Server ID: ", "miner_injected": "Miner injected (1 - Yes|0 - No): ", "dev": "Is agent: ", "xp": "XP: ", "ipv6": "Encrypted: ", "password": "dHackNET ID: ", "proxy": "In proxy chain: "
+}
