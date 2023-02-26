@@ -71,32 +71,32 @@ def intro():
     time.sleep(1)
     print(gr + "Sound enabled." + sr)
     time.sleep(1)
-    playsound(os.path.join('.', 'sounds', 'normalmemorycheck1.mp3'), block=False)
+    playsound(os.path.join('.', 'assets/sounds', 'normalmemorycheck1.mp3'), block=False)
     sayshort("\033[0;0fMemory check...")
     time.sleep(1.5)
     offline = True
     #num = random.randint(256, 1024)
-    playsound(os.path.join('.', 'sounds', 'normalmemorycheck2.mp3'), block=False)
+    playsound(os.path.join('.', 'assets/sounds', 'normalmemorycheck2.mp3'), block=False)
     time.sleep(0.3)
     for i in range(0,31000,800):
         sayshort(str(i) + "\n")
         sayshort("\033[0;0fMemory check...")
     offline = False
     time.sleep(2)
-    playsound(os.path.join('.', 'sounds', 'normalbooting.mp3'), block=False)
+    playsound(os.path.join('.', 'assets/sounds', 'normalbooting.mp3'), block=False)
     time.sleep(0.5)
     sayshort(sb + "\033[2;0fBoot Interface")
     time.sleep(1.5)
     cadena = "."
     offline = True
-    playsound(os.path.join('.', 'sounds', 'normaldone.mp3'), block=False)
+    playsound(os.path.join('.', 'assets/sounds', 'normaldone.mp3'), block=False)
     for caracter in cadena:
         sayshort(str(caracter))
         sayshort("\033[2;15f." + "\033[2;16f." + "\033[2;17f." + "\033[2;18f." + "\033[2;19f." + "\033[2;20f." + "\033[2;21f." + "\033[2;22f." + "\033[2;23f." + "\033[2;24f." + "\033[2;25f." + "\033[2;26f." + sr + "[" + gr + "DONE" + sr + "]\n")
     offline = False
     time.sleep(2)
-    playsound(os.path.join('.', 'sounds', 'normalloading.mp3'), block=False)
-    playsound(os.path.join('.', 'sounds', 'normaldone.mp3'), block=False)
+    playsound(os.path.join('.', 'assets/sounds', 'normalloading.mp3'), block=False)
+    playsound(os.path.join('.', 'assets/sounds', 'normaldone.mp3'), block=False)
     time.sleep(0.4)
     sayshort(yw + "Loading configuration....." + sr + "[" + gr + "DONE" + sr + "]\n")
     time.sleep(2)
