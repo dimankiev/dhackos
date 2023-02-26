@@ -16,7 +16,7 @@ try:
     from prompt_toolkit import PromptSession
     from prompt_toolkit.history import InMemoryHistory
     from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
-    from introd import intro, intro_nosound, clearScreen, say
+    from introd import intro, intro_nosound, clear_tty, say
     from soundwork import *
 
 except Exception as e:
@@ -43,7 +43,7 @@ init()
 miner_power_status = "on"
 version = "0.3.3b"
 
-clearScreen()
+clear_tty()
 while True:
     enable_sound = str(input("Enable sound? (yes/no): ").lower())
     if enable_sound == "yes" or enable_sound == "y":
@@ -70,31 +70,31 @@ def strings_load(strings_var: dict, strings_path: str):
 
 
 bank_help = {}
-strings_load(bank_help, './data/strings/commands/bank.json')
+strings_load(bank_help, './core/strings/commands/bank.json')
 
 about = {}
-strings_load(about, './data/strings/about_info.json')
+strings_load(about, './core/strings/about_info.json')
 
 cmds = {}
-strings_load(cmds, './data/strings/commands/system.json')
+strings_load(cmds, './core/strings/commands/system.json')
 
 dhackosf_cmds = {}
-strings_load(dhackosf_cmds, './data/strings/commands/dhackosf.json')
+strings_load(dhackosf_cmds, './core/strings/commands/dhackosf.json')
 
 stats_desc = {}
-strings_load(stats_desc, './data/strings/stats.json')
+strings_load(stats_desc, './core/strings/stats.json')
 
 miner_desc = {}
-strings_load(miner_desc, './data/strings/miner/minerdesc.json')
+strings_load(miner_desc, './core/strings/miner/minerdesc.json')
 
 miner_components = {}
-strings_load(miner_components, './data/strings/miner/components.json')
+strings_load(miner_components, './core/strings/miner/components.json')
 
 tcmds = {}
-strings_load(tcmds, './data/strings/targets/t_commands.json')
+strings_load(tcmds, './core/strings/targets/t_commands.json')
 
 target_desc = {}
-strings_load(target_desc, './data/strings/targets/targetdesc.json')
+strings_load(target_desc, './core/strings/targets/targetdesc.json')
 
 debug_info = {
     "Version :": str("\n  dHackOS v." + version),
@@ -1517,7 +1517,7 @@ while True:
             else:
                 print(rd + "Unknown input. Please try again" + sr)
         elif cmd == "clear":
-            clearScreen()
+            clear_tty()
 
         else:
             print(rd + "Unknown input. Please try again" + sr)
