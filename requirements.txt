@@ -1,4 +1,6 @@
 wheel
+pycryptodome~=3.17
+coincurve~=18.0.0
 progressbar2
 psutil~=5.9.4
 prompt_toolkit

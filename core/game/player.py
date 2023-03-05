@@ -19,6 +19,9 @@ class Player:
     # Player dev mode flag
     dev: int
 
+    # Bank account number
+    bank_acc_no = 0
+
     def __init__(self) -> None:
         pass
 

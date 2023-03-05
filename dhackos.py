@@ -30,20 +30,18 @@ except Exception as e:
 
 from core.game.utils import ip as ip_generator
 from core.game.utils import strings as _strings
+from core.game.utils.printing import SR, SB, GR, YW, RD, BL, WT, print_vocabulary
+
+from core.game.modules import bank as banking
+
 from core.game.programs.lanhunter import lanhunt
+from core.game.programs.bank import program_run as bank_program
 
 from core.game import player as _player
 
-sr = Style.RESET_ALL
-sb = Style.BRIGHT
-gr = Fore.GREEN
-yw = Fore.YELLOW
-rd = Fore.RED
-bl = Fore.BLUE
-wt = Fore.WHITE
-
 player = _player.Player()
 stats = _player.Stats()
+bank = banking.Bank()
 
 init()
 
@@ -60,7 +58,7 @@ while True:
         intro_nosound()
         break
     else:
-        print(rd + "Unknown input. Yes or no?" + sr)
+        print(RD + "Unknown input. Yes or no?" + SR)
 
 
 strings = _strings.Strings()
@@ -97,7 +95,7 @@ def getVarFromFile(filename):
 
 
 def gamesave_load(username):
-    global apps, success_load, minehistory, targets, ips, miner, bank, anticheat, miner_power_status, off_earn_k, miner_power, mined, bank_off_earn_k, path, saveinfo
+    global apps, success_load, minehistory, targets, ips, miner, anticheat, miner_power_status, off_earn_k, miner_power, mined, bank_off_earn_k, path, saveinfo
     success_load = 0
     try:
         with open(os.path.join('saves', username + '.md5'), 'r') as f:
@@ -108,10 +106,10 @@ def gamesave_load(username):
                 success_load = 0
             f.close()
         if hashsum != checksum:
-            print(gr + sb + "\n[INTEGRITY_CHECK] " + Style.NORMAL + "Save is: " + sb + rd + "MODIFIED\n" + sr)
+            print(GR + SB + "\n[INTEGRITY_CHECK] " + Style.NORMAL + "Save is: " + SB + RD + "MODIFIED\n" + SR)
             anticheat = 0
         else:
-            print(gr + sb + "\n[INTEGRITY_CHECK] " + Style.NORMAL + "Save is: " + sb + "OK\n" + sr)
+            print(GR + SB + "\n[INTEGRITY_CHECK] " + Style.NORMAL + "Save is: " + SB + "OK\n" + SR)
             anticheat = 1
         data_loaded, data_load_success = getVarFromFile(str(username))
         if data_load_success == 1:
@@ -122,17 +120,20 @@ def gamesave_load(username):
             targets = data_loaded['targets']
             ips = data_loaded['ips']
             miner = data_loaded['miner']
-            bank = data_loaded['bank']
+            if data_loaded.get('bank') is not None:
+                bank.load_bank_data_legacy(data_loaded['bank'])
+            if data_loaded.get('bank_accounts') is not None:
+                bank.accounts_load(data_loaded['bank_accounts'])
             saveinfo = data_loaded['saveinfo']
             miner_power_status = data_loaded['miner_power_status']
             data_loaded.close()
         else:
             data_loaded.close()
         if saveinfo["version"] != version:
-            print(rd + sb + f"Your save is outdated. Save version is {saveinfo['version']}" + sr)
+            print(RD + SB + f"Your save is outdated. Save version is {saveinfo['version']}" + SR)
 
         if md5(pwd.getpass("Please enter your password: "), "dhackos") != player.password:
-            print(rd + "The password is wrong !\n" + sr)
+            print(RD + "The password is wrong !\n" + SR)
             success_load = 0
         else:
             stats.update(_player.StatsTypes.game_launches, 1)
@@ -149,22 +150,23 @@ def gamesave_load(username):
                 player.ethereums += mined * off_earn_k
                 bank_off_earn_k = off_earn_k // 60
                 print(" \n" + Fore.MAGENTA + "You were offline for: %d mins" % bank_off_earn_k)
-                print(Fore.MAGENTA + sb + "Offline earnings: %s ETH" % str(
-                    '{0:.8f}'.format(float(mined * off_earn_k))) + sr)
+                print(Fore.MAGENTA + SB + "Offline earnings: %s ETH" % str(
+                    '{0:.8f}'.format(float(mined * off_earn_k))) + SR)
                 stats.update(_player.StatsTypes.eth_earned, mined)
             else:
-                bank_off_earn_k = off_earn_k // 60
-                print(" \n" + Fore.MAGENTA + "You were offline for: %d mins" % bank_off_earn_k)
-                print("Miner status: " + sb + miner_power_status + sr)
-            if bank["balance"] > 0:
-                if bank_off_earn_k >= 1:
-                    bank_earnings = float((bank["balance"] / 100) * bank["deposit_rate"]) * bank_off_earn_k
-                    bank["balance"] += bank_earnings
-                    print(Fore.MAGENTA + sb + "Bank (deposit) earnings: %s ETH" % str(
-                        '{0:.8f}'.format(float(bank_earnings))) + sr)
+                bank_off_earn_k = (off_earn_k // 60) // 60
+                print(" \n" + Fore.MAGENTA + "You were offline for: %d mins" % off_earn_k // 60)
+                print("Miner status: " + SB + miner_power_status + SR)
+            if bank_off_earn_k >= 1:
+                balance_before = bank.account(0).wallet(0).get_balance()
+                for _ in range(0, int(bank_off_earn_k)):
+                    bank.perform_lifecycle()
+                balance_after = bank.account(0).wallet(0).get_balance()
+                print(Fore.MAGENTA + SB + "Bank interest earnings: %s ETH" % str(
+                    '{0:.8f}'.format(float(balance_after - balance_before))) + SR)
             success_load = 1
     except Exception as err:
-        print(rd + "Save is missing or corrupted !\nSave version may be old\n" + sr)
+        print(RD + "Save is missing or corrupted !\nSave version may be old\n" + SR)
         time.sleep(1)
         #try:
         #    data_loaded.close()
@@ -172,7 +174,7 @@ def gamesave_load(username):
         #    print("Try again or start new game !")
 
 
-def gamesave_write(username, apps, minehistory, targets, ips, miner, saveinfo, bank):
+def gamesave_write(username, apps, minehistory, targets, ips, miner, saveinfo):
     if platform.system() == "Windows":
         path = "saves\\"
     elif platform.system() == "Linux":
@@ -185,7 +187,7 @@ def gamesave_write(username, apps, minehistory, targets, ips, miner, saveinfo, b
     save.update({
         "player": player.to_dict(), "apps": apps, "stats": stats.to_dict(),
         "minehistory": minehistory, "targets": targets, "ips": ips,
-        "miner": miner, "saveinfo": saveinfo, "bank": bank,
+        "miner": miner, "saveinfo": saveinfo, "bank_accounts": bank.accounts_export(),
         "miner_power_status": miner_power_status
     })
     save.close()
@@ -193,26 +195,26 @@ def gamesave_write(username, apps, minehistory, targets, ips, miner, saveinfo, b
 
 
 def saveGame(username):
-    global apps, minehistory, targets, ips, miner, saveinfo, bank
+    global apps, minehistory, targets, ips, miner, saveinfo
     saveinfo = {"version": str(version), "timestamp": time.time()}
     try:
-        gamesave_write(username, apps, minehistory, targets, ips, miner, saveinfo, bank)
+        gamesave_write(username, apps, minehistory, targets, ips, miner, saveinfo)
     except Exception as ex:
         print(
-            rd + "Save failed! Please check your read/write permissions\n(If you a Linux or Android user, check chmod or try to launch this game as root)" + sr)
+            RD + "Save failed! Please check your read/write permissions\n(If you a Linux or Android user, check chmod or try to launch this game as root)" + SR)
         print(ex)
 
 
 def newGame():
     time.sleep(2)
-    print(sb + "Installing operating system image..." + sr + wt)
+    print(SB + "Installing operating system image..." + SR + WT)
     time.sleep(3)
     for i in progressbar.progressbar(range(100)): time.sleep(0.1)
     time.sleep(3)
-    print(sr + "[" + gr + "SUCCESS" + sr + "]")
+    print(SR + "[" + GR + "SUCCESS" + SR + "]")
     time.sleep(2)
     while True:
-        global apps, minehistory, news, miner, bank, anticheat
+        global apps, minehistory, news, miner, anticheat
         news = {}
         player.ethereums = 0.0
         player.ip = "127.0.0.1"
@@ -223,33 +225,31 @@ def newGame():
         player.ip = str(gen_ip())
         player.username = str(input("Please enter your username: "))
         if player.username == "debug":
-            print(rd + "Username DEBUG is not available !" + sr)
+            print(RD + "Username DEBUG is not available !" + SR)
             continue
         player.password = str(pwd.getpass("Please enter your password: ").lower())
         if len(player.password) < 6:
             print(
-                rd + "Password can't be less than 6 symbols, please choose another password\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" + sr)
+                RD + "Password can't be less than 6 symbols, please choose another password\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" + SR)
         elif player.password != pwd.getpass("Please repeat your password: ").lower() and len(
                 player.password) >= 6:
-            print(rd + "Passwords do not match !\nPlease try again\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" + sr)
+            print(RD + "Passwords do not match !\nPlease try again\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" + SR)
         else:
             player.password = md5(player.password, "dhackos")
             apps = {"scanner": 1, "spam": 1, "bruteforce": 1, "sdk": 1, "ipspoofing": 1, "dechyper": 1}
             stats.load({"eth_earned": 0.0, "shacked": 0, "xp": 0, "rep": 0, "scans": 0, "level": 1, "symbols": 0,
                      "launches": 0, "miners": 1, "ownminers": 1, "proxy": 0})
             miner = {"cpu": 1, "gpu": 1, "ram": 1, "software": 1}
-            bank = {"balance": 0, "deposit_rate": rnd.randint(5, 9)}
             stats.update(_player.StatsTypes.game_launches, 1)
             genTargetsList()
             anticheat = 1
             break
 
 
-def bankWork():
-    global bank
+def bank_loop():
     while True:
         time.sleep(3600)
-        bank["balance"] += float((bank["balance"] / 100) * bank["deposit_rate"])
+        bank.perform_lifecycle()
 
 def levelCheck():
     if (player.xp // 1000) >= 1:
@@ -258,32 +258,8 @@ def levelCheck():
         updated_level = stats.get(_player.StatsTypes.level)
         award = 10 * updated_level
         player.ethereums = float(player.ethereums + award)
-        print(sb + gr + str(updated_level) + " level reached !\n You had been awarded by " + str(
-            award) + " ETH !\n Congrats !" + sr)
-
-
-def showVoc(vocabulary, description, additional, color):
-    if description is None and additional is None:
-        for param in vocabulary:
-            print(color + sb + param + Style.NORMAL + " " + str(vocabulary[param]) + sr)
-    elif description is None and additional is not None:
-        for param in vocabulary:
-            print(
-                color + sb + param + Style.NORMAL + " " + str(vocabulary[param]) + " " + str(additional) + sr)
-    elif description is not None and additional is None:
-        for param in vocabulary:
-            if param == "k":
-                print(color + sb + description[param] + Style.NORMAL + "DHACK33" + str(
-                    vocabulary[param]) * 2 + sr)
-            elif param == "eth_earned":
-                print(color + sb + description[param] + Style.NORMAL + " " + str(
-                    '{0:.8f}'.format(vocabulary[param])) + sr)
-            else:
-                print(color + sb + description[param] + Style.NORMAL + " " + str(vocabulary[param]) + sr)
-    else:
-        for param in vocabulary:
-            print(Fore.color + sb + description[param] + Style.NORMAL + " " + str(
-                vocabulary[param]) + " " + str(additional) + sr)
+        print(SB + GR + str(updated_level) + " level reached !\n You had been awarded by " + str(
+            award) + " ETH !\n Congrats !" + SR)
 
 
 def md5(string, salt):
@@ -406,31 +382,31 @@ def resetTargetBalance():
 
 
 def changeIPv(ipv):
-    print(rd + sb + "Don't use this function if it's not necessary !")
+    print(RD + SB + "Don't use this function if it's not necessary !")
     if input("Are you sure ?(Yes/No): ").lower() == "yes":
-        print(gr + "Changing..." + wt)
+        print(GR + "Changing..." + WT)
         for i in progressbar.progressbar(range(100)): time.sleep(0.1)
         player.ipv6 = ipv
         genTargetsList()
         if ipv == 0:
             print("Connecting to IPv4 network...")
         else:
-            print("Connecting to IPv6 network..." + wt)
+            print("Connecting to IPv6 network..." + WT)
         for i in progressbar.progressbar(range(100)): time.sleep(0.02)
         player.ip = gen_ip()
-        print(sr + "[" + gr + sb + "SUCCESS" + sr + "]")
+        print(SR + "[" + GR + SB + "SUCCESS" + SR + "]")
         cmd_msg.pop(2)
         cmd_msg.insert(2, ('class:host', str(player.ip)))
         time.sleep(1)
-        print(" \n" + yw + "Your IP: " + sb + gr + str(player.ip) + sr)
+        print(" \n" + YW + "Your IP: " + SB + GR + str(player.ip) + SR)
     else:
-        print(sr + "[" + rd + sb + "ABORTED" + sr + "]")
+        print(SR + "[" + RD + SB + "ABORTED" + SR + "]")
 
 
 def searchTargets(is_bot):
     global player_target_list, bot_target_list, bot_target
     if is_bot == 0:
-        print(Fore.WHITE + Back.BLUE + sb + "dHackOS Scanner v.0.5-r.4" + sr)
+        print(Fore.WHITE + Back.BLUE + SB + "dHackOS Scanner v.0.5-r.4" + SR)
         stats.update(_player.StatsTypes.scans_performed, 1)
         xp = rnd.randint(0, 50)
         stats.update(_player.StatsTypes.experience, xp)
@@ -443,10 +419,10 @@ def searchTargets(is_bot):
         for i in progressbar.progressbar(range(100)): time.sleep(0.05 / float(apps["scanner"]))
         scantime = rnd.uniform(0.02, 1) * (100 / apps["scanner"])
         player_target_list = loadTargetList()
-        print(gr + "Targets found !\nIP list:" + sb)
+        print(GR + "Targets found !\nIP list:" + SB)
         for i in range(0, len(player_target_list)): print(str(i) + ". " + player_target_list[int(i)])
         print(
-            Style.NORMAL + "Please choose the IP, launch " + sb + "dHackOSf" + Style.NORMAL + " and enter the IP what you choosen" + sr)
+            Style.NORMAL + "Please choose the IP, launch " + SB + "dHackOSf" + Style.NORMAL + " and enter the IP what you choosen" + SR)
     else:
         bot_target_list = loadTargetList()
         bot_target = targets[bot_target_list[rnd.randint(0, (len(bot_target_list) - 1))]]
@@ -474,7 +450,7 @@ def initGame():
         game_bot = threading.Thread(target=gameBot)
         game_bot.daemon = True
         game_bot.start()
-        bank_worker = threading.Thread(target=bankWork)
+        bank_worker = threading.Thread(target=bank_loop)
         bank_worker.daemon = True
         bank_worker.start()
         proxy_hunter = threading.Thread(target=proxyKill)
@@ -687,25 +663,25 @@ def init_dHackOSf_Prompt(username, ip):
 # print(sr + "[" + gr + "DONE" + sr + "]")
 while True:
     try:
-        sol = input(yw + "Load save or start new session? (Save/New): " + sr).lower()
+        sol = input(YW + "Load save or start new session? (Save/New): " + SR).lower()
     except KeyboardInterrupt:
-        print(rd + "\nExiting...\nGoodbye :)" + sr)
+        print(RD + "\nExiting...\nGoodbye :)" + SR)
         exit()
     if sol == "sav" or sol == "save" or sol == "sv" or sol == "sve" or sol == "s":
         time.sleep(1)
-        print(sb + "[" + Fore.LIGHTGREEN_EX + "SYSTEM LOGIN" + sr + sb + "]" + sr)
+        print(SB + "[" + Fore.LIGHTGREEN_EX + "SYSTEM LOGIN" + SR + SB + "]" + SR)
         try:
             time.sleep(1)
             username = str(input("Please enter your username: "))
             with open("saves/" + username + ".db", "r") as f:
                 f.close()
-            print("Please wait...\n" + gr + "Loading..." + sr)
+            print("Please wait...\n" + GR + "Loading..." + SR)
             time.sleep(1)
-            print(sb + Fore.LIGHTGREEN_EX + "Welcome back " + sr + username + sb + Fore.LIGHTGREEN_EX + "!")
+            print(SB + Fore.LIGHTGREEN_EX + "Welcome back " + SR + username + SB + Fore.LIGHTGREEN_EX + "!")
             gamesave_load(username)
             if success_load == 1:
-                print(" \n" + gr + "Your IP: " + sb + player.ip + sr + "\n")
-                print(yw + "Type help for a list of commands\n " + sr)
+                print(" \n" + GR + "Your IP: " + SB + player.ip + SR + "\n")
+                print(YW + "Type help for a list of commands\n " + SR)
                 initGame()
                 init_dHackOS_Prompt()
                 f.close()
@@ -714,15 +690,15 @@ while True:
                 continue
         # except Exception as err:
         except FileNotFoundError:
-            print(rd + "User not found please try again" + sr)
+            print(RD + "User not found please try again" + SR)
     elif sol == "new" or sol == "nw" or sol == "nwe" or sol == "n" or sol == "nee":
         newGame()
         time.sleep(2)
-        print(sr + "[" + gr + "SUCCESS" + sr + "]\n")
+        print(SR + "[" + GR + "SUCCESS" + SR + "]\n")
         time.sleep(1)
-        print(sb + gr + "Welcome " + sr + sb + player.username + sb + gr + "!")
-        print(" \n" + "Your IP: " + sb + str(player.ip) + sr + "\n")
-        print(yw + "Type help for a list of commands\n " + sr)
+        print(SB + GR + "Welcome " + SR + SB + player.username + SB + GR + "!")
+        print(" \n" + "Your IP: " + SB + str(player.ip) + SR + "\n")
+        print(YW + "Type help for a list of commands\n " + SR)
         initGame()
         init_dHackOS_Prompt()
         break
@@ -742,33 +718,33 @@ while True:
                  "level": 999999999, "symbols": 999999999,
                  "launches": 999999999, "miners": 999999999, "ownminers": 999999999, "proxy": 999999999})
         miner = {"cpu": 10, "gpu": 10, "ram": 10, "software": 10}
-        bank = {"balance": 999999999, "borrowed": 0, "deposit_rate": rnd.randint(5, 9),
-                "credit_rate": rnd.randint(9, 13), "max_borrow": 300, "borrow_time": 0}
+        bank.load_bank_data_legacy({"balance": 999999999, "borrowed": 0, "deposit_rate": rnd.randint(5, 9),
+                "credit_rate": rnd.randint(9, 13), "max_borrow": 300, "borrow_time": 0})
         stats.update(_player.StatsTypes.game_launches, 1)
         genTargetsList()
         anticheat = 1
-        print(sr + gr + ".::SUCCESS::.")
-        print("Your IP: " + sb + str(player.ip) + sr)
+        print(SR + GR + ".::SUCCESS::.")
+        print("Your IP: " + SB + str(player.ip) + SR)
         initGame()
         init_dHackOS_Prompt()
         break
     else:
-        print(rd + "Unknown input ! Please, try again" + sr)
+        print(RD + "Unknown input ! Please, try again" + SR)
 sol = None
 dHackOSprmpt = PromptSession()
 while True:
     try:
         if player.sentence == 3:
             player.sentence = rnd.randint((player.sentence + 1), 10)
-            print(rd + "You has been sentenced for " + str(player.sentence) + " years" + sr)
-            showVoc(stats.to_dict(), strings.get_section('stats_desc'), None, gr)
-            print(rd + "[GAME OVER]" + sr)
+            print(RD + "You has been sentenced for " + str(player.sentence) + " years" + SR)
+            print_vocabulary(stats.to_dict(), strings.get_section('stats_desc'), None, GR)
+            print(RD + "[GAME OVER]" + SR)
             saveGame(str(player.username))
             break
         elif player.sentence > 3:
-            print(rd + "You has been sentenced for " + str(player.sentence) + " years" + sr)
-            showVoc(stats.to_dict(), strings.get_section('stats_desc'), None, gr)
-            print(rd + "[GAME OVER]" + sr)
+            print(RD + "You has been sentenced for " + str(player.sentence) + " years" + SR)
+            print_vocabulary(stats.to_dict(), strings.get_section('stats_desc'), None, GR)
+            print(RD + "[GAME OVER]" + SR)
             saveGame(str(player.username))
             break
         else:
@@ -776,38 +752,38 @@ while True:
         levelCheck()
         stats.update(_player.StatsTypes.symbols_typed, len(cmd))
         if cmd == "help":
-            showVoc(strings.get_section('cmds'), None, None, yw)
+            print_vocabulary(strings.get_section('cmds'), None, None, YW)
         elif cmd == "apps":
-            showVoc(apps, None, "lvl", yw)
+            print_vocabulary(apps, None, "lvl", YW)
         elif cmd == "balance":
-            say(" \n" + sb + wt + Back.BLUE + "Ethereum Core v.8 CLI" + sr)
-            print(bl + "Connecting..." + sr)
+            say(" \n" + SB + WT + Back.BLUE + "Ethereum Core v.8 CLI" + SR)
+            print(BL + "Connecting..." + SR)
             time.sleep(3)
-            print(bl + sb + "Your balance is: " + Fore.MAGENTA + '{0:.8f}'.format(
-                player.ethereums) + Fore.MAGENTA + " ETH" + sr + " \n")
+            print(BL + SB + "Your balance is: " + Fore.MAGENTA + '{0:.8f}'.format(
+                player.ethereums) + Fore.MAGENTA + " ETH" + SR + " \n")
         elif cmd == "scan":
             searchTargets(0)
         elif cmd == "upgrade":
-            print(" \n" + wt + Back.GREEN + "dHackOS upgrade CLI v.0.9-r.3" + sr)
-            showVoc(apps, None, "lvl", gr)
-            print(bl + "-=-=-=-=-=-=-=-=-=-=-" + sr)
+            print(" \n" + WT + Back.GREEN + "dHackOS upgrade CLI v.0.9-r.3" + SR)
+            print_vocabulary(apps, None, "lvl", GR)
+            print(BL + "-=-=-=-=-=-=-=-=-=-=-" + SR)
             while True:
                 print(
-                    yw + "Please choose the program which you want to upgrade or type exit\nPrint all to upgrade all programs simultaneously")
-                program = input("What we're going to upgrade today ? " + sr).lower()
+                    YW + "Please choose the program which you want to upgrade or type exit\nPrint all to upgrade all programs simultaneously")
+                program = input("What we're going to upgrade today ? " + SR).lower()
                 try:
                     if program != "all" and program != "exit":
                         apps[program] = ((apps[program] + 1) - 1)
                 except Exception as e:
-                    print(rd + "Program not found or unknown input !\n" + str(e) + gr)
+                    print(RD + "Program not found or unknown input !\n" + str(e) + GR)
                     continue
                 if program != "exit":
                     while True:
                         try:
                             cost = float(0)
-                            levels = int(input(yw + "How many levels do you want to upgrade (1-∞): " + sr))
+                            levels = int(input(YW + "How many levels do you want to upgrade (1-∞): " + SR))
                             if levels <= 0:
-                                print(rd + "This value can't be zero or be less than zero" + gr)
+                                print(RD + "This value can't be zero or be less than zero" + GR)
                                 break
                             if program == "all":
                                 cost = float(0)
@@ -815,9 +791,9 @@ while True:
                                     cost += float(pi * (float(apps[app]) + levels))
                             else:
                                 cost = float(pi * (apps[program] + levels))
-                            print(yw + "Upgrade of " + sb + str(program) + sr + yw + " will cost you " + sb + str(
-                                cost) + " ETH." + sr)
-                            if input(yw + "Upgrade (Y/N): " + sr).lower() == "y":
+                            print(YW + "Upgrade of " + SB + str(program) + SR + YW + " will cost you " + SB + str(
+                                cost) + " ETH." + SR)
+                            if input(YW + "Upgrade (Y/N): " + SR).lower() == "y":
                                 if player.ethereums >= cost:
                                     player.ethereums = float(float(player.ethereums) - float(cost))
                                     if program == "all":
@@ -825,24 +801,24 @@ while True:
                                             apps[app] += levels
                                     else:
                                         apps[program] = int(int(apps[program]) + int(levels))
-                                    print(sr + "[" + sb + gr + "SUCCESS" + sr + "]" + yw)
+                                    print(SR + "[" + SB + GR + "SUCCESS" + SR + "]" + YW)
                                     break
                                 else:
-                                    print(rd + "Insufficient balance !" + gr)
+                                    print(RD + "Insufficient balance !" + GR)
                                     break
                             else:
-                                print(rd + "Upgrade aborted !" + gr)
+                                print(RD + "Upgrade aborted !" + GR)
                                 break
                         except Exception as e:
-                            print(rd + "Program not found or unknown input !\n" + str(e) + gr)
+                            print(RD + "Program not found or unknown input !\n" + str(e) + GR)
                             break
                 elif program == "exit":
-                    print(rd + "Stopping... " + sr)
+                    print(RD + "Stopping... " + SR)
                     break
                 else:
-                    print(rd + "Unknown input !" + gr)
+                    print(RD + "Unknown input !" + GR)
         elif cmd == "stats":
-            showVoc(stats.to_dict(), strings.get_section('stats_desc'), None, Fore.CYAN)
+            print_vocabulary(stats.to_dict(), strings.get_section('stats_desc'), None, Fore.CYAN)
         elif cmd == "rescan_subnet":
             print(Fore.CYAN + "Scanning subnet...")
             sub_gen = threading.Thread(target=genTargetsList)
@@ -852,20 +828,20 @@ while True:
                 time.sleep(1)
                 print("Scanning in progress... " + str(scan_percent) + "%")
                 if scan_percent == 100.0:
-                    print(gr + "Done !")
+                    print(GR + "Done !")
                     break
-            print(Fore.CYAN + str(len(ips)) + " servers in subnet" + sr)
+            print(Fore.CYAN + str(len(ips)) + " servers in subnet" + SR)
         elif cmd == "load_list":
             if player_target_list != []:
-                print(gr + "IP list:" + sb)
+                print(GR + "IP list:" + SB)
                 for i in range(0, len(player_target_list)):
                     print(str(i) + ". " + player_target_list[int(i)])
                 print(
-                    Style.NORMAL + "Please choose the IP, launch " + sb + "dHackOSf" + Style.NORMAL + " and enter the IP what you choosen" + sr)
+                    Style.NORMAL + "Please choose the IP, launch " + SB + "dHackOSf" + Style.NORMAL + " and enter the IP what you choosen" + SR)
             else:
-                print(rd + "There is no targets in your list ! Type scan to find one." + sr)
+                print(RD + "There is no targets in your list ! Type scan to find one." + SR)
         elif cmd == "dhackosf":
-            print(Fore.WHITE + Back.RED + sb + "dHackOS Exploit Framework v.0.9-r.2" + sr)
+            print(Fore.WHITE + Back.RED + SB + "dHackOS Exploit Framework v.0.9-r.2" + SR)
             target = {}
             modules_loaded = False
             scan_done = False
@@ -879,10 +855,10 @@ while True:
             while True:
                 if target == {}:
                     print(
-                        rd + sb + "Tutorial:\nSelect an IP from your previous scan results\nYou can enter just a number (0-10) of IP in target list\nType exit to stop the dHackOSf !" + gr)
+                        RD + SB + "Tutorial:\nSelect an IP from your previous scan results\nYou can enter just a number (0-10) of IP in target list\nType exit to stop the dHackOSf !" + GR)
                     target_ip = str(input("Please enter the target IP: ").lower())
                     if target_ip == "exit":
-                        print("Stopping the dHackOSf..." + sr)
+                        print("Stopping the dHackOSf..." + SR)
                         time.sleep(1)
                         break
                     else:
@@ -894,10 +870,10 @@ while True:
                                 target_ip = player_target_list[int(target_ip)]
                             except:
                                 print(
-                                    rd + "Wrong IP entered or target list is empty !\n" + yw + "Start scan to find a new target list" + sr)
+                                    RD + "Wrong IP entered or target list is empty !\n" + YW + "Start scan to find a new target list" + SR)
                                 break
                     print(
-                        "dHackOSf is initializing !\nPlease wait...\n" + yw + "Type help for a list of commands." + gr)
+                        "dHackOSf is initializing !\nPlease wait...\n" + YW + "Type help for a list of commands." + GR)
                     dHackOSf_prmpt = None
                     dHackOSf_prmpt = PromptSession()
                     init_dHackOSf_Prompt("dhackosf", df_status)
@@ -909,69 +885,69 @@ while True:
                     df_cmd = str(dHackOSf_prmpt.prompt(cmdf_msg, style=cmdf_style,
                                                        auto_suggest=AutoSuggestFromHistory())).lower()
                     if df_cmd == "help":
-                        showVoc(strings.get_section('dhackosf_cmds'), None, None, yw)
-                        print(rd + "Don't forget to load dhackosf modules" + gr + sb)
+                        print_vocabulary(strings.get_section('dhackosf_cmds'), None, None, YW)
+                        print(RD + "Don't forget to load dhackosf modules" + GR + SB)
                     elif df_cmd == "connect":
                         if fw_bypassed == True and scan_done == True and connected == False:
-                            print(Fore.CYAN + "Connecting..." + sb)
+                            print(Fore.CYAN + "Connecting..." + SB)
                             for i in progressbar.progressbar(range(100)): time.sleep(0.02)
                             connected = True
-                            print(yw + "Now you can retrieve the root hash !" + gr + sb)
+                            print(YW + "Now you can retrieve the root hash !" + GR + SB)
                             df_status = str(target_ip)
                         elif connected == True:
-                            print(rd + "You've already connected !" + gr + sb)
+                            print(RD + "You've already connected !" + GR + SB)
                         else:
-                            print(rd + "Scan target first !\nThen bypass the firewall !\nThen connect..." + gr + sb)
+                            print(RD + "Scan target first !\nThen bypass the firewall !\nThen connect..." + GR + SB)
                     elif df_cmd == "bypass":
                         if fw_bypassed == False and scan_done == True:
-                            print(Fore.CYAN + "Bypassing firewall..." + wt)
+                            print(Fore.CYAN + "Bypassing firewall..." + WT)
                             for i in progressbar.progressbar(range(100)): time.sleep(
                                 float((target["firewall"] / apps["ipspoofing"]) / 10))
                             fw_bypassed = True
-                            print(yw + "Now you can connect to the target !" + gr + sb)
+                            print(YW + "Now you can connect to the target !" + GR + SB)
                         elif fw_bypassed == True:
-                            print(rd + "Firewall is already bypassed !" + gr + sb)
+                            print(RD + "Firewall is already bypassed !" + GR + SB)
                         else:
-                            print(rd + "Please scan the target first !" + gr + sb)
+                            print(RD + "Please scan the target first !" + GR + SB)
                     elif df_cmd == "scan":
                         if scan_done == False and modules_loaded == True:
-                            print(gr + "Scanning target..." + wt)
+                            print(GR + "Scanning target..." + WT)
                             for i in progressbar.progressbar(range(100)): time.sleep(0.02)
-                            showVoc(target, strings.get_section('target_desc'), None, gr)
-                            print(yw + "Now you can bypass the firewall !" + gr + sb)
+                            print_vocabulary(target, strings.get_section('target_desc'), None, GR)
+                            print(YW + "Now you can bypass the firewall !" + GR + SB)
                             scan_done = True
                         elif scan_done == True:
-                            print(rd + "Scan is already done !" + gr + sb)
+                            print(RD + "Scan is already done !" + GR + SB)
                         else:
-                            print(rd + "Please load modules first !" + gr + sb)
+                            print(RD + "Please load modules first !" + GR + SB)
                     elif df_cmd == "exit":
-                        print(rd + "Exiting..." + sr)
+                        print(RD + "Exiting..." + SR)
                         break
                     elif df_cmd == "load_modules":
                         if modules_loaded == False:
-                            print(rd + "Loading dHackOSf modules..." + wt)
+                            print(RD + "Loading dHackOSf modules..." + WT)
                             for i in progressbar.progressbar(range(100)): time.sleep(0.02)
-                            showVoc(apps, None, "[OK]", rd)
+                            print_vocabulary(apps, None, "[OK]", RD)
                             modules_loaded = True
-                            print(yw + "Now you can start the scan" + gr + sb)
+                            print(YW + "Now you can start the scan" + GR + SB)
                         else:
-                            print(rd + "Modules is already loaded !" + gr + sb)
+                            print(RD + "Modules is already loaded !" + GR + SB)
                     elif df_cmd == "get_hash":
                         if hash_got == False and all_done == True:
-                            print(Fore.CYAN + "Retrieving root hash..." + wt)
+                            print(Fore.CYAN + "Retrieving root hash..." + WT)
                             for i in progressbar.progressbar(range(100)): time.sleep(
                                 float((target["firewall"] / apps["sdk"]) / 10))
                             hash_got = str(md5(target["ip"], str(rnd.randint(0, 10000))))
-                            print(gr + "Success !\nHash: " + sb + hash_got)
-                            print(yw + "Now you can start bruteforce process !" + gr + sb)
+                            print(GR + "Success !\nHash: " + SB + hash_got)
+                            print(YW + "Now you can start bruteforce process !" + GR + SB)
                         elif hash_got != False:
-                            print(rd + "Hash has been already retrieved !" + gr + sb)
+                            print(RD + "Hash has been already retrieved !" + GR + SB)
                         else:
                             print(
-                                rd + "Please load modules first !\nThen scan target\nThen bypass the firewall\nThen - connect and get the hash" + gr + sb)
+                                RD + "Please load modules first !\nThen scan target\nThen bypass the firewall\nThen - connect and get the hash" + GR + SB)
                     elif df_cmd == "bruteforce":
                         if all_done == True and hash_got != False and hash_got != True:
-                            print("Bruteforcing..." + wt)
+                            print("Bruteforcing..." + WT)
                             for i in progressbar.progressbar(range(100)): time.sleep(
                                 float(((pi + target["firewall"]) / apps["bruteforce"]) / 10))
                             hack_chance = (apps["bruteforce"] + apps["sdk"] + apps["ipspoofing"] + apps[
@@ -979,14 +955,14 @@ while True:
                             fw_vs_player = target["firewall"] - hack_chance
                             hack_done = True
                             hash_got = True
-                            print(yw + "Now you can initialize shell on target server !" + gr + sb)
+                            print(YW + "Now you can initialize shell on target server !" + GR + SB)
                         elif hash_got == False:
-                            print(rd + "Please, get the hash first !" + gr + sb)
+                            print(RD + "Please, get the hash first !" + GR + SB)
                         else:
-                            print(rd + "Hash is already bruteforced !" + gr + sb)
+                            print(RD + "Hash is already bruteforced !" + GR + SB)
                     elif df_cmd == "shell" and hack_done == True:
                         if hack_chance >= fw_vs_player and hack_done == True:
-                            print(sb + "Successful !")
+                            print(SB + "Successful !")
                             print("Root access granted !")
                             xp = rnd.randint(0, 200)
                             stats.update(_player.StatsTypes.experience, xp)
@@ -995,8 +971,8 @@ while True:
                             trace = threading.Thread(target=traceStart)  # target balance reset
                             trace.daemon = True
                             trace.start()
-                            print(yw + "You have " + str(
-                                tracing) + "sec before local admin trace you ! (Connection will be lost and ETHs seized by FBI)" + gr)
+                            print(YW + "You have " + str(
+                                tracing) + "sec before local admin trace you ! (Connection will be lost and ETHs seized by FBI)" + GR)
                             dHackOSf_prmpt = None
                             dHackOSf_prmpt = PromptSession()
                             init_dHackOSf_Prompt("root", df_status)
@@ -1005,7 +981,7 @@ while True:
                                                                  auto_suggest=AutoSuggestFromHistory())).lower()
                                 if tracing == 0 or tracing <= 1:
                                     print(
-                                        rd + "Connection was refused by local administrator...\nAttempting to revive remote session...")
+                                        RD + "Connection was refused by local administrator...\nAttempting to revive remote session...")
                                     time.sleep(1)
                                     player.ethereums = 0
                                     stats.update(_player.StatsTypes.miners_total, None)
@@ -1013,89 +989,89 @@ while True:
                                     stats.update(_player.StatsTypes.systems_hacked, 1)
                                     connection = 0
                                     print(
-                                        "[dHackOSf] ERROR. FIREWALL IS BLOCKING SESSION !" + yw + "\n[dHackOS Corp] Your ETHs was seized by the FBI and injected miners deleted.\nYou will be sentenced after 3 FBI warnings.\nYou have " + str(
-                                            player.sentence) + " warnings. Be careful." + sr)
+                                        "[dHackOSf] ERROR. FIREWALL IS BLOCKING SESSION !" + YW + "\n[dHackOS Corp] Your ETHs was seized by the FBI and injected miners deleted.\nYou will be sentenced after 3 FBI warnings.\nYou have " + str(
+                                            player.sentence) + " warnings. Be careful." + SR)
                                     break
                                 elif tcmd == "help":
-                                    print(rd + "-==CONSOLE USING IS NOT RECOMMENDED FOR EMPLOYEE==-" + gr + sb)
-                                    showVoc(strings.get_section('tcmds'), None, None, gr)
-                                    print(rd + sb + "-==CONSOLE USING IS NOT RECOMMENDED FOR EMPLOYEE==-" + gr + sb)
+                                    print(RD + "-==CONSOLE USING IS NOT RECOMMENDED FOR EMPLOYEE==-" + GR + SB)
+                                    print_vocabulary(strings.get_section('tcmds'), None, None, GR)
+                                    print(RD + SB + "-==CONSOLE USING IS NOT RECOMMENDED FOR EMPLOYEE==-" + GR + SB)
                                 elif tcmd == "wallet":
-                                    print(rd + "-==CONSOLE USING IS NOT RECOMMENDED FOR EMPLOYEE==-" + gr + sb)
-                                    print("Your balance is: " + str(target["ethereums"]) + " ETH" + rd)
+                                    print(RD + "-==CONSOLE USING IS NOT RECOMMENDED FOR EMPLOYEE==-" + GR + SB)
+                                    print("Your balance is: " + str(target["ethereums"]) + " ETH" + RD)
                                     print(
-                                        ".::dHackOSf detected an Ethereum address field::.\nWallet dechypering..." + wt)
+                                        ".::dHackOSf detected an Ethereum address field::.\nWallet dechypering..." + WT)
                                     for i in progressbar.progressbar(range(100)): time.sleep(
                                         float(((pi + target["firewall"]) / apps["dechyper"]) / 10))
                                     print(
-                                        ".::dHackOSf injected code which changes all typed addresses with your for this input field. Just press enter::." + yw)
+                                        ".::dHackOSf injected code which changes all typed addresses with your for this input field. Just press enter::." + YW)
                                     wcmd = input("Please enter the Ethereum wallet address to send money to: ")
-                                    print(rd + ".::Replacing addresses::." + wt)
+                                    print(RD + ".::Replacing addresses::." + WT)
                                     for i in progressbar.progressbar(range(100)): time.sleep(0.03)
                                     player.ethereums = player.ethereums + target["ethereums"]
                                     stats.update(_player.StatsTypes.eth_earned, target["ethereums"])
-                                    print(gr + "Transfer successful !" + wt + str(
-                                        target["ethereums"]) + yw + "ETH " + sr + "transferred." + sr)
+                                    print(GR + "Transfer successful !" + WT + str(
+                                        target["ethereums"]) + YW + "ETH " + SR + "transferred." + SR)
                                     target["ethereums"] = 0.0
-                                    print("Closing wallet..." + gr)
-                                    print(rd + "-==CONSOLE USING IS NOT RECOMMENDED FOR EMPLOYEE==-" + gr)
+                                    print("Closing wallet..." + GR)
+                                    print(RD + "-==CONSOLE USING IS NOT RECOMMENDED FOR EMPLOYEE==-" + GR)
                                 elif tcmd == "exit":
                                     print(Fore.CYAN + "Spamming...")
                                     earn = pi / (100 / (apps["spam"] + apps["ipspoofing"]))
                                     player.ethereums = player.ethereums + earn
                                     stats.update(_player.StatsTypes.systems_hacked, 1)
                                     stats.update(_player.StatsTypes.eth_earned, earn)
-                                    print(gr + "Success. Earned from spam: " + rd + str(
-                                        earn) + " " + Back.YELLOW + "ETH" + sr)
-                                    print(rd + "[dHackOSf] Console closed ! Disconnecting..." + sr)
+                                    print(GR + "Success. Earned from spam: " + RD + str(
+                                        earn) + " " + Back.YELLOW + "ETH" + SR)
+                                    print(RD + "[dHackOSf] Console closed ! Disconnecting..." + SR)
                                     break
                                 elif tcmd == "developer_mode":
                                     print(
-                                        rd + "[Employee OS v.8.1 Pro] DEVELOPER MODE ACCESSED ! YOUR EMPLOYER WAS NOTICED !\nBlocking PC...\nClosing Internet connections..." + wt)
+                                        RD + "[Employee OS v.8.1 Pro] DEVELOPER MODE ACCESSED ! YOUR EMPLOYER WAS NOTICED !\nBlocking PC...\nClosing Internet connections..." + WT)
                                     for i in progressbar.progressbar(range(100)): time.sleep(0.02)
                                     print(
-                                        "[dHackOSf] CONNECTION FAILURE !\n[dHackOSf] REMOTE CONTROL TROJAN DELETED LOGS AND SELF-DELETED" + sr)
+                                        "[dHackOSf] CONNECTION FAILURE !\n[dHackOSf] REMOTE CONTROL TROJAN DELETED LOGS AND SELF-DELETED" + SR)
                                     break
                                 elif tcmd == "inject":
-                                    print(rd + "dHackOSf miner injector v.0.1-r3" + wt)
+                                    print(RD + "dHackOSf miner injector v.0.1-r3" + WT)
                                     if target["miner_injected"] == 0:
                                         for i in progressbar.progressbar(range(100)): time.sleep(0.04)
                                         stats.update(_player.StatsTypes.miners_total, 1)
-                                        print(gr + "Miner injected into kernel !")
+                                        print(GR + "Miner injected into kernel !")
                                         target["miner_injected"] = 1
                                     else:
-                                        print(rd + "Miner has been already injected into kernel !" + gr)
+                                        print(RD + "Miner has been already injected into kernel !" + GR)
                                 elif tcmd == "proxy":
-                                    print(Fore.CYAN + "dHackOSf proxy init v.0.1.9-r1" + wt)
+                                    print(Fore.CYAN + "dHackOSf proxy init v.0.1.9-r1" + WT)
                                     if target["proxy"] == 0:
                                         for i in progressbar.progressbar(range(100)): time.sleep(0.02)
                                         stats.update(_player.StatsTypes.proxies_injected, 1)
-                                        print(gr + "Proxy initialized !")
+                                        print(GR + "Proxy initialized !")
                                         target["proxy"] = 1
                                     else:
-                                        print(rd + "Proxy has been already initialized on this server !" + gr)
+                                        print(RD + "Proxy has been already initialized on this server !" + GR)
                                 else:
-                                    print(rd + "Unknown input !" + gr)
+                                    print(RD + "Unknown input !" + GR)
                         else:
-                            print(rd + "Bruteforce unsuccesful !")
+                            print(RD + "Bruteforce unsuccesful !")
                             hack_end = True
                         targets[target["ip"]] = target
                         print("Disconnected from " + target["ip"])
-                        print("Don't forget to start scan to find new target" + sr)
+                        print("Don't forget to start scan to find new target" + SR)
                         break
                     elif df_cmd == "shell" and hack_done != True:
-                        print(rd + "Please bruteforce the hash first !" + gr)
+                        print(RD + "Please bruteforce the hash first !" + GR)
                     else:
-                        print(rd + "Unknown input !" + gr)
+                        print(RD + "Unknown input !" + GR)
         elif cmd == "shutdown":
-            sol = input(yw + sb + "Save session? (Yes/No): " + sr).lower()
+            sol = input(YW + SB + "Save session? (Yes/No): " + SR).lower()
             if sol == "yes" or sol == "ys" or sol == "y":
                 time.sleep(1)
                 print(
-                    rd + "Stopping all processes...\n" + yw + "Saving session...\n" + wt + sb + "Disconnected..." + sr)
+                    RD + "Stopping all processes...\n" + YW + "Saving session...\n" + WT + SB + "Disconnected..." + SR)
                 saveGame(str(player.username))
             else:
-                print(rd + "Stopping all processes...\n" + wt + sb + "Disconnected..." + sr)
+                print(RD + "Stopping all processes...\n" + WT + SB + "Disconnected..." + SR)
             break
         elif cmd == "change_ip_v":
             if player.ipv6 == 1:
@@ -1104,88 +1080,88 @@ while True:
                 changeIPv(1)
         elif cmd == "update_ip":
             time.sleep(1)
-            confirm = input(yw + "Please confirm (yes/no):" + sr).lower()
+            confirm = input(YW + "Please confirm (yes/no):" + SR).lower()
             if confirm == "yes":
                 time.sleep(2)
-                print(yw + "Reconnecting..." + wt)
+                print(YW + "Reconnecting..." + WT)
                 time.sleep(1)
                 for i in progressbar.progressbar(range(100)): time.sleep(0.03)
                 player.ip = ip_generator.gen_ip_v4()()
                 cmd_msg.pop(2)
                 cmd_msg.insert(2, ('class:host', str(player.ip)))
                 time.sleep(1)
-                print(sr + "[" + sb + gr + "SUCCESS" + sr + "]")
+                print(SR + "[" + SB + GR + "SUCCESS" + SR + "]")
                 time.sleep(1)
-                print(yw + "Your IP: " + sb + gr + str(player.ip) + sr)
+                print(YW + "Your IP: " + SB + GR + str(player.ip) + SR)
             elif confirm == "no":
                 time.sleep(1)
-                print(yw + "Keeping your IP..." + sr)
+                print(YW + "Keeping your IP..." + SR)
             else:
                 time.sleep(1)
-                print(rd + "Unknown input please try again" + sr)
+                print(RD + "Unknown input please try again" + SR)
 
         elif cmd == "miner":
-            print(gr + "Last 10 enrollments from your miner" + sr)
+            print(GR + "Last 10 enrollments from your miner" + SR)
             miner_enroll = 1
             try:
                 for i in range(1, 11):
-                    print(gr + sb + str(i) + Style.NORMAL + minehistory[str(i)] + sr)
+                    print(GR + SB + str(i) + Style.NORMAL + minehistory[str(i)] + SR)
                 miner_enroll = 0
             except:
                 print(
-                    yw + "Please wait for 10 seconds, miner is connecting to the mining pool transaction history..." + sr)
+                    YW + "Please wait for 10 seconds, miner is connecting to the mining pool transaction history..." + SR)
                 miner_enroll = 0
         elif cmd == "news":
-            print(gr + "Latest cyber security news:" + sr)
+            print(GR + "Latest cyber security news:" + SR)
             news_show = 1
             try:
                 for i in range(1, 11):
                     current_news = news[str(i)]
-                    print(gr + sb + current_news["time"] + Style.NORMAL + current_news["accident"] + sr)
+                    print(GR + SB + current_news["time"] + Style.NORMAL + current_news["accident"] + SR)
                 news_show = 0
             except Exception as e:
-                print(yw + "Please wait for " + str(
-                    int(accident_n * 5)) + " seconds, news service is initializing..." + sr)
+                print(YW + "Please wait for " + str(
+                    int(accident_n * 5)) + " seconds, news service is initializing..." + SR)
                 news_show = 0
             news_show = 0
         elif cmd == "version":
-            showVoc(strings.get_section('about'), None, None, gr)
+            print_vocabulary(strings.get_section('about'), None, None, GR)
         elif cmd == "debug_info":
-            showVoc(debug_info, None, None, Fore.MAGENTA)
+            print_vocabulary(debug_info, None, None, Fore.MAGENTA)
         elif cmd == "scan_target":
             target = {}
             while True:
                 if target == {}:
                     print(
-                        rd + sb + "Tutorial:\nSelect an IP from your previous scan results\nType exit to stop the dHackOS Scanner !" + gr)
+                        RD + SB + "Tutorial:\nSelect an IP from your previous scan results\nType exit to stop the dHackOS Scanner !" + GR)
                     target_ip = str(input("Please enter the target IP: "))
                     if target_ip == "exit":
-                        print("Stopping the dHackOS Scanner..." + sr)
+                        print("Stopping the dHackOS Scanner..." + SR)
                         time.sleep(1)
                         break
                     else:
                         try:
                             target = targets[target_ip]
                         except:
-                            print(rd + "Wrong IP entered !" + sr)
+                            print(RD + "Wrong IP entered !" + SR)
                             break
                     print("Scanning process is started !\nPlease wait...")
                 else:
-                    print(gr + "Scanning target..." + wt)
+                    print(GR + "Scanning target..." + WT)
                     for i in progressbar.progressbar(range(100)): time.sleep(0.02)
-                    showVoc(target, strings.get_section('target_desc'), None, gr)
+                    print_vocabulary(target, strings.get_section('target_desc'), None, GR)
                     break
         elif cmd == "miner_shop":
-            print(" \n" + wt + Back.GREEN + "dHackOS Miner CLI v.0.9-r.3" + sr)
-            print(gr + "-=-=-=-=-=-=-=-=-=-=-" + sb)
+            print(" \n" + WT + Back.GREEN + "dHackOS Miner CLI v.0.9-r.3" + SR)
+            print(GR + "-=-=-=-=-=-=-=-=-=-=-" + SB)
             while True:
                 print("Please choose what you want to upgrade or type exit\nPrint all to upgrade all simultaneously")
-                minecp = input("What we're going to upgrade today?: " + sr).lower()
+                minecp = input("What we're going to upgrade today?: " + SR).lower()
                 try:
                     if minecp != "all" and minecp != "exit":
                         miner[minecp] = ((miner[minecp] + 1) - 1)
                 except Exception as e:
-                    print(rd + "Nothing was found or unknown input !\n" + str(e) + gr)
+                    print(RD + "Nothing was found or unknown input !\n" + str(e) + GR)
                     continue
                 if minecp != "exit":
                     while True:
@@ -1197,7 +1173,7 @@ while True:
                                         # cost += float(pi * (float(miner_cost[str(miner[minecomp])]) + 1))
                                         cost += float(pi * (float(miner[minecomp]) + 1))
                                     else:
-                                        print(rd + "Max level reached for:\n%s" % strings.get('miner_components', minecomp + str(miner[minecomp])) + gr)
+                                        print(RD + "Max level reached for:\n%s" % strings.get('miner_components', minecomp + str(miner[minecomp])) + GR)
                             else:
                                 # cost += float(pi * (float(miner_cost[str(miner[minecp])]) + 1))
                                 cost += float(pi * (float(miner[minecp]) + 1))
@@ -1211,11 +1187,11 @@ while True:
                                                 miner[minecomp] += 1
                                                 print(Style.NORMAL + "New %s %s" % (strings.get('miner_desc', minecomp),
                                                                                     strings.get('miner_components', minecomp + str(
-                                                                                        miner[minecomp])) + sb))
+                                                                                        miner[minecomp])) + SB))
                                             else:
-                                                print(rd + "There is no available upgrades for:\n%s" %
+                                                print(RD + "There is no available upgrades for:\n%s" %
                                                       strings.get('miner_components', minecomp + str(miner[minecomp]) +
-                                                                  gr))
+                                                                  GR))
                                     else:
                                         miner[minecp] += 1
                                         print("New %s %s" % (
@@ -1224,22 +1200,22 @@ while True:
                                                                                                 str(miner[minecp])
                                                                                                 )
                                         ))
-                                    print(sr + "[" + sb + gr + "SUCCESS" + sr + "]" + gr + sb)
+                                    print(SR + "[" + SB + GR + "SUCCESS" + SR + "]" + GR + SB)
                                     break
                                 else:
-                                    print(rd + "Insufficient balance !" + gr)
+                                    print(RD + "Insufficient balance !" + GR)
                                     break
                             else:
-                                print(rd + "Upgrade aborted !" + gr)
+                                print(RD + "Upgrade aborted !" + GR)
                                 break
                         except Exception as e:
-                            print(rd + "Component not found or unknown input !\n" + str(e) + gr)
+                            print(RD + "Component not found or unknown input !\n" + str(e) + GR)
                             break
                 elif minecp == "exit":
-                    print(rd + "Stopping... " + sr)
+                    print(RD + "Stopping... " + SR)
                     break
                 else:
-                    print(rd + "Unknown input !" + gr)
+                    print(RD + "Unknown input !" + GR)
         elif cmd == "buy_miner":
             if enable_sound == "yes" or enable_sound == "y":
                 bMinerSound()
@@ -1250,145 +1226,59 @@ while True:
                 for minecomp in miner:
                     # cost += float(pi * (float(miner_cost[str(miner[minecomp])]) + 1))
                     cost += float(pi * (float(miner[minecomp]) + 1) * stats.get(_player.StatsTypes.level))
-                miners = int(input(sb + gr + "How many miners you want to buy? (Numeric): " + sr))
+                miners = int(input(SB + GR + "How many miners you want to buy? (Numeric): " + SR))
                 cost = cost * stats.get(_player.StatsTypes.miners_owned_total) * miners
-                print(sb + yw + "It will cost you %d ETH" % cost)
-                sol = str(input(sb + gr + "Buy ?(Yes/No): " + sr)).lower()
+                print(SB + YW + "It will cost you %d ETH" % cost)
+                sol = str(input(SB + GR + "Buy ?(Yes/No): " + SR)).lower()
                 if sol == "y" or sol == "yes":
                     if player.ethereums >= cost:
                         player.ethereums -= cost
                         stats.update(_player.StatsTypes.miners_owned_total, 1 * miners)
-                        print(yw + "Transaction in process..." + sr + sb)
+                        print(YW + "Transaction in process..." + SR + SB)
                         for i in progressbar.progressbar(range(100)): time.sleep(0.03)
                         time.sleep(1)
-                        print(gr + "Success!")
+                        print(GR + "Success!")
                     else:
-                        print(rd + "Insufficient balance !" + sr)
+                        print(RD + "Insufficient balance !" + SR)
                 else:
-                    print(rd + "Aborted !" + sr)
+                    print(RD + "Aborted !" + SR)
             except:
-                print(rd + "Invalid value entered !" + sr)
+                print(RD + "Invalid value entered !" + SR)
         elif cmd == "miner_info":
             while True:
                 for minecomp in miner:
-                    print(gr + "%s %s" % (strings.get('miner_desc', minecomp), strings.get('miner_components',
+                    print(GR + "%s %s" % (strings.get('miner_desc', minecomp), strings.get('miner_components',
                                                                                            minecomp + str(miner[minecomp])
                                                                                            )
                                           )
                           )
                 if miner_power_status == "on":
                     print("Temperature: %d °C\nCPU Load: %s %%" % (
-                        rnd.randint(65, 75), str('{0:.2f}'.format(rnd.uniform(90, 99)))) + sr)
+                        rnd.randint(65, 75), str('{0:.2f}'.format(rnd.uniform(90, 99)))) + SR)
                     break
                 else:
                     print("Temperature: %d °C\nCPU Load: %s %%" % (
-                        rnd.randint(65, 70), str('{0:.2f}'.format(rnd.uniform(78, 89)))) + sr)
+                        rnd.randint(65, 70), str('{0:.2f}'.format(rnd.uniform(78, 89)))) + SR)
                     break
         elif cmd == "bank":
             if enable_sound == "yes" or enable_sound == "y":
                 bankSound()
             else:
-                bank_nosound()
+                bankNosound()
             # bank = {"balance": 0, "borrowed": 0, "deposit_rate": rnd.randint(5,9), "credit_rate": rnd.randint(9,13), "max_borrow": 300, "borrow_time": 0}
-            while True:
-                bcmd = str(input("BankCLI (main) > ")).lower()
-                if bcmd == "help":
-                    showVoc(strings.get_section('bank_help'), None, None, yw)
-                elif bcmd == "info":
-                    print(gr + "Your IP: %s\nBank balance: %s\nDeposit rate: %d%%/hour" % (
-                        player.ip, str('{0:.8f}'.format(bank["balance"])), bank["deposit_rate"]) + sr)
-                # elif bcmd == "borrow":
-                # while True:
-                # print(yw + "\nMax amount of ETH which you can borrow: %s ETH\nYour current ETH balance: %s ETH\nBank balance: %s ETH" % (str(str('{0:.6f}'.format(bank["max_borrow"]))),str(str('{0:.6f}'.format(player.ethereums))),str(str('{0:.6f}'.format(bank["balance"])))) + sr)
-                # try:
-                # borrow = float(input("How many ETH you want to borrow ?(Numeric): "))
-                # if borrow <= bank["max_borrow"] and bank["borrowed"] == 0:
-                # player.ethereums += borrow
-                # bank["borrowed"] += borrow
-                # print(gr + "Successful !" + sr)
-                # break
-                # elif bank["borrowed"] > 0:
-                # print(rd + "Borrow exists !\nOperation aborted !" + sr)
-                # elif borrow == "exit":
-                # break
-                # else:
-                # print(rd + "Insufficient balance !\nOperation aborted !" + sr)
-                # break
-                # except:
-                # print(rd + "Non-numeric value entered !\nOperation aborted !" + sr)
-                # break
-                elif bcmd == "deposit":
-                    while True:
-                        print(
-                            yw + "\nYour current ETH balance: %s ETH\nBank balance: %s ETH\nType 'all' to deposit all ETH\n" % (
-                                str(str('{0:.8f}'.format(player.ethereums))),
-                                str(str('{0:.8f}'.format(bank["balance"])))) + sr)
-                        try:
-                            try:
-                                deposit = input("How many ETH you want to deposit ?(Numeric): ")
-                                deposit = float(deposit)
-                            except:
-                                if str(deposit) == "all":
-                                    deposit = float(player.ethereums)
-                                else:
-                                    print(rd + "Unknown input!" + sr)
-                                    break
-                            if deposit <= player.ethereums:
-                                bank["balance"] += deposit
-                                player.ethereums -= deposit
-                                print(yw + "Saving your money...")
-                                time.sleep(1)
-                                print(gr + "Successful! " + sr + str(
-                                    '{0:.8f}'.format(deposit) + "ETH " + yw + "deposited.\n" + sr))
-                                break
-
-                            elif deposit == "exit":
-                                break
-                            else:
-                                print(rd + "Insufficient balance !\nDeposit aborted !" + sr)
-                                break
-                        except Exception as e:
-                            print(rd + "Non-numeric value entered !\nOperation aborted !" + sr)
-                            print(str(e))
-                            break
-                elif bcmd == "withdraw":
-                    while True:
-                        print(yw + "\nYour current ETH balance: %s ETH\nBank balance: %s ETH" % (
-                            str(str('{0:.8f}'.format(player.ethereums))),
-                            str(str('{0:.8f}'.format(bank["balance"])))) + sr)
-                        try:
-                            withdraw = float(input("How many ETH you want to withdraw ?(Numeric): "))
-                            if withdraw <= bank["balance"]:
-                                bank["balance"] -= withdraw
-                                player.ethereums += withdraw
-                                stats.update(_player.StatsTypes.eth_earned, withdraw)
-                                print(gr + "Successful !" + sr)
-                                break
-                            elif withdraw == "exit":
-                                break
-                            else:
-                                print(rd + "Insufficient balance !\nWithdraw aborted !" + sr)
-                                break
-                        except:
-                            print(rd + "Non-numeric value entered !\nOperation aborted !" + sr)
-                            break
-                elif bcmd == "exit":
-                    print(rd + "Closing DarkNet Bank CLI..." + sr)
-                    break
-                else:
-                    print(rd + "Unknown input !" + sr)
+            bank_program(strings, bank, player, stats)
         elif cmd == "hilo_game":
-            print(gr + sb + "Welcome to High/Low Bet Game !")
+            print(GR + SB + "Welcome to High/Low Bet Game !")
             while True:
                 hilo = str(input("HiLo CLI (main) > ")).lower()
                 if hilo == "help":
-                    print(yw + "help - list HiLo Game commands\nbet - do bet\nexit - Exit from HiLo Game" + gr)
+                    print(YW + "help - list HiLo Game commands\nbet - do bet\nexit - Exit from HiLo Game" + GR)
                 elif hilo == "bet":
                     try:
                         print("Your balance: %s" % str('{0:.6f}'.format(player.ethereums)))
                         bet = float(input("How many ETH you want to bet ?(Numeric): "))
                         if bet > player.ethereums:
-                            print(rd + "Insufficient balance !" + gr)
+                            print(RD + "Insufficient balance !" + GR)
                             continue
                         player.ethereums -= bet
                         bet_event = str(input("Next number will be lower or higher than 50 ?(lo/hi): ")).lower()
@@ -1408,17 +1298,17 @@ while True:
                                 print("You won %s ETH !" % str(bet * 2))
                                 stats.update(_player.StatsTypes.eth_earned, (bet * 2))
                             else:
-                                print(rd + "You lose !" + gr)
+                                print(RD + "You lose !" + GR)
                         else:
-                            print(rd + "Unknown input !" + gr)
+                            print(RD + "Unknown input !" + GR)
                     except:
-                        print(rd + "Non-numeric ETH value entered !" + gr)
+                        print(RD + "Non-numeric ETH value entered !" + GR)
                         continue
                 elif hilo == "exit":
-                    print(rd + "Closing the HiLo Game... " + sr)
+                    print(RD + "Closing the HiLo Game... " + SR)
                     break
                 else:
-                    print(rd + "Unknown input !" + gr)
+                    print(RD + "Unknown input !" + GR)
         elif cmd == "lanhunt":
             player.ethereums += lanhunt.mainLanHuntCLI()
         elif cmd == "debug":
@@ -1429,9 +1319,9 @@ while True:
         elif cmd == "miner_stat":
             time.sleep(1)
             if miner_power_status == "on":
-                print(sr + yw + "Miner status: " + sb + gr + str(miner_power_status) + sr)
+                print(SR + YW + "Miner status: " + SB + GR + str(miner_power_status) + SR)
             else:
-                print(sr + yw + "Miner status: " + sb + rd + str(miner_power_status))
+                print(SR + YW + "Miner status: " + SB + RD + str(miner_power_status))
         elif cmd == "miner_cfg":
             cfgcfg = str(input("Miner (on/off): ")).lower()
             if cfgcfg == "off":
@@ -1439,13 +1329,13 @@ while True:
             elif cfgcfg == "on":
                 miner_power_status = "on"
             else:
-                print(rd + "Unknown input. Please try again" + sr)
+                print(RD + "Unknown input. Please try again" + SR)
         elif cmd == "clear":
             clear_tty()
 
         else:
-            print(rd + "Unknown input. Please try again" + sr)
+            print(RD + "Unknown input. Please try again" + SR)
     except KeyboardInterrupt:
         time.sleep(1)
-        print(rd + "\nAll programs stopped !\nTo exit from dHackOS, type shutdown !" + sr)
-print(rd + "Shutting down...")
+        print(RD + "\nAll programs stopped !\nTo exit from dHackOS, type shutdown !" + SR)
+print(RD + "Shutting down...")
