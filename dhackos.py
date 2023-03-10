@@ -32,21 +32,15 @@ from core.game.utils import ip as ip_generator
 from core.game.utils import strings as _strings
 from core.game.utils.printing import SR, SB, GR, YW, RD, BL, WT, print_vocabulary
 
-from core.game.modules import bank as banking
-
 from core.game.programs.lanhunter import lanhunt
 from core.game.programs.bank import program_run as bank_program
 
 from core.game import player as _player
+from core.game import Game
 
-player = _player.Player()
-stats = _player.Stats()
-bank = banking.Bank()
+game = Game()
 
 init()
-
-miner_power_status = "on"
-version = "0.3.3b"
 
 clear_tty()
 while True:
@@ -63,20 +57,11 @@ while True:
 
 strings = _strings.Strings()
 
-debug_info = {
-    "Version :": str("\n  dHackOS v." + version),
-    "OS :": str("\n  " + platform.system() + " " + platform.release()),
-    "RAM :": str("\n  Total : " + '{0:.2f}'.format(
-        float(virtual_memory()[0] / 1073741824)) + " GB\n  Used : " + '{0:.2f}'.format(
-        float(virtual_memory()[3] / 1073741824)) + " GB\n  Free : " + '{0:.2f}'.format(
-        float(virtual_memory()[1] / 1073741824)) + " GB")
-}
-
 
 def gen_ip():
     if sol == "New" or sol == "new":
         ip = ip_generator.gen_ip_v4()
-    elif player.ipv6 == 1:
+    elif game.player.ipv6 == 1:
         ip = ip_generator.gen_ip_v6()
     else:
         ip = ip_generator.gen_ip_v4()
@@ -95,76 +80,75 @@ def getVarFromFile(filename):
 
 
 def gamesave_load(username):
-    global apps, success_load, minehistory, targets, ips, miner, anticheat, miner_power_status, off_earn_k, miner_power, mined, bank_off_earn_k, path, saveinfo
-    success_load = 0
+    game.load_success = 0
     try:
         with open(os.path.join('saves', username + '.md5'), 'r') as f:
             hashsum = str(f.readline())
             try:
                 checksum = md5SaveCheckSum(os.path.join('saves', username + '.db'), username, 0)
             except:
-                success_load = 0
+                game.load_success = 0
             f.close()
         if hashsum != checksum:
             print(GR + SB + "\n[INTEGRITY_CHECK] " + Style.NORMAL + "Save is: " + SB + RD + "MODIFIED\n" + SR)
-            anticheat = 0
+            game.anti_cheat = 0
         else:
             print(GR + SB + "\n[INTEGRITY_CHECK] " + Style.NORMAL + "Save is: " + SB + "OK\n" + SR)
-            anticheat = 1
+            game.anti_cheat = 1
         data_loaded, data_load_success = getVarFromFile(str(username))
         if data_load_success == 1:
-            player.load(data_loaded['player'])
-            apps = data_loaded['apps']
-            stats.load(data_loaded['stats'])
-            minehistory = data_loaded['minehistory']
-            targets = data_loaded['targets']
-            ips = data_loaded['ips']
-            miner = data_loaded['miner']
+            game.player.load(data_loaded['player'])
+            game.apps = data_loaded['apps']
+            game.stats.load(data_loaded['stats'])
+            game.miner_history = data_loaded['minehistory']
+            game.targets = data_loaded['targets']
+            game.ips = data_loaded['ips']
+            game.miner = data_loaded['miner']
             if data_loaded.get('bank') is not None:
-                bank.load_bank_data_legacy(data_loaded['bank'])
+                game.bank.load_bank_data_legacy(data_loaded['bank'])
             if data_loaded.get('bank_accounts') is not None:
-                bank.accounts_load(data_loaded['bank_accounts'])
-            saveinfo = data_loaded['saveinfo']
-            miner_power_status = data_loaded['miner_power_status']
+                game.bank.accounts_load(data_loaded['bank_accounts'])
+            game.save_info = data_loaded['saveinfo']
+            game.miner_power_status = data_loaded['miner_power_status']
             data_loaded.close()
         else:
             data_loaded.close()
-        if saveinfo["version"] != version:
-            print(RD + SB + f"Your save is outdated. Save version is {saveinfo['version']}" + SR)
+        if game.save_info["version"] != game.version:
+            print(RD + SB + f"Your save is outdated. Save version is {game.save_info['version']}" + SR)
 
-        if md5(pwd.getpass("Please enter your password: "), "dhackos") != player.password:
+        if md5(pwd.getpass("Please enter your password: "), "dhackos") != game.player.password:
             print(RD + "The password is wrong !\n" + SR)
-            success_load = 0
+            game.load_success = 0
         else:
-            stats.update(_player.StatsTypes.game_launches, 1)
-            off_earn_k = time.time() - saveinfo["timestamp"]
+            game.stats.update(_player.StatsTypes.game_launches, 1)
+            off_earn_k = time.time() - game.save_info["timestamp"]
             miner_power = float(
-                (rnd.uniform(0.0000001, 0.0005) * rnd.randint(25, 100)) * miner["cpu"] * miner["gpu"] * miner["ram"] *
-                miner["software"] * 200)
-            miners_total = stats.get(_player.StatsTypes.miners_total)
-            miners_owned = stats.get(_player.StatsTypes.miners_owned_total)
+                (rnd.uniform(0.0000001, 0.0005) * rnd.randint(25, 100)) * game.miner["cpu"] * game.miner["gpu"] * game.miner["ram"] *
+                game.miner["software"] * 200)
+            miners_total = game.stats.get(_player.StatsTypes.miners_total)
+            miners_owned = game.stats.get(_player.StatsTypes.miners_owned_total)
             mined = float(
                 rnd.uniform(0.00000000001, 0.00000005) * miners_total * (miners_owned ** 3) + rnd.uniform(
-                    0.00000000001, 0.00000005 * miner["software"]) * miner_power * (miner_power / 20000))
-            if miner_power_status == "on":
-                player.ethereums += mined * off_earn_k
+                    0.00000000001, 0.00000005 * game.miner["software"]) * miner_power * (miner_power / 20000))
+            if game.miner_power_status == "on":
+                game.player.ethereums += mined * off_earn_k
                 bank_off_earn_k = off_earn_k // 60
                 print(" \n" + Fore.MAGENTA + "You were offline for: %d mins" % bank_off_earn_k)
                 print(Fore.MAGENTA + SB + "Offline earnings: %s ETH" % str(
                     '{0:.8f}'.format(float(mined * off_earn_k))) + SR)
-                stats.update(_player.StatsTypes.eth_earned, mined)
+                game.stats.update(_player.StatsTypes.eth_earned, mined)
             else:
                 bank_off_earn_k = (off_earn_k // 60) // 60
                 print(" \n" + Fore.MAGENTA + "You were offline for: %d mins" % off_earn_k // 60)
-                print("Miner status: " + SB + miner_power_status + SR)
+                print("Miner status: " + SB + game.miner_power_status + SR)
             if bank_off_earn_k >= 1:
-                balance_before = bank.account(0).wallet(0).get_balance()
+                balance_before = game.bank.account(0).wallet(0).get_balance()
                 for _ in range(0, int(bank_off_earn_k)):
-                    bank.perform_lifecycle()
-                balance_after = bank.account(0).wallet(0).get_balance()
+                    game.bank.perform_lifecycle()
+                balance_after = game.bank.account(0).wallet(0).get_balance()
                 print(Fore.MAGENTA + SB + "Bank interest earnings: %s ETH" % str(
                     '{0:.8f}'.format(float(balance_after - balance_before))) + SR)
-            success_load = 1
+            game.load_success = 1
     except Exception as err:
         print(RD + "Save is missing or corrupted !\nSave version may be old\n" + SR)
         time.sleep(1)
@@ -174,7 +158,7 @@ def gamesave_load(username):
         #    print("Try again or start new game !")
 
 
-def gamesave_write(username, apps, minehistory, targets, ips, miner, saveinfo):
+def gamesave_write(username):
     if platform.system() == "Windows":
         path = "saves\\"
     elif platform.system() == "Linux":
@@ -185,20 +169,19 @@ def gamesave_write(username, apps, minehistory, targets, ips, miner, saveinfo):
         os.mkdir("./saves")
     save = shelve.open(path + str(username) + ".db")
     save.update({
-        "player": player.to_dict(), "apps": apps, "stats": stats.to_dict(),
-        "minehistory": minehistory, "targets": targets, "ips": ips,
-        "miner": miner, "saveinfo": saveinfo, "bank_accounts": bank.accounts_export(),
-        "miner_power_status": miner_power_status
+        "player": game.player.to_dict(), "apps": game.apps, "stats": game.stats.to_dict(),
+        "minehistory": game.miner_history, "targets": game.targets, "ips": game.ips,
+        "miner": game.miner, "saveinfo": game.save_info, "bank_accounts": game.bank.accounts_export(),
+        "miner_power_status": game.miner_power_status
     })
     save.close()
     md5SaveCheckSum("saves/" + str(username) + ".db", username, 1)
 
 
 def saveGame(username):
-    global apps, minehistory, targets, ips, miner, saveinfo
-    saveinfo = {"version": str(version), "timestamp": time.time()}
+    game.save_info = {"version": str(game.version), "timestamp": time.time()}
     try:
-        gamesave_write(username, apps, minehistory, targets, ips, miner, saveinfo)
+        gamesave_write(username)
     except Exception as ex:
         print(
             RD + "Save failed! Please check your read/write permissions\n(If you a Linux or Android user, check chmod or try to launch this game as root)" + SR)
@@ -214,50 +197,49 @@ def newGame():
     print(SR + "[" + GR + "SUCCESS" + SR + "]")
     time.sleep(2)
     while True:
-        global apps, minehistory, news, miner, anticheat
-        news = {}
-        player.ethereums = 0.0
-        player.ip = "127.0.0.1"
-        player.dev = 0
-        player.ipv6 = ""
-        player.xp = 0
-        player.sentence = 0
-        player.ip = str(gen_ip())
-        player.username = str(input("Please enter your username: "))
-        if player.username == "debug":
+        game.news.clear()
+        game.player.ethereums = 0.0
+        game.player.ip = "127.0.0.1"
+        game.player.dev = 0
+        game.player.ipv6 = ""
+        game.player.xp = 0
+        game.player.sentence = 0
+        game.player.ip = str(gen_ip())
+        game.player.username = str(input("Please enter your username: "))
+        if game.player.username == "debug":
             print(RD + "Username DEBUG is not available !" + SR)
             continue
-        player.password = str(pwd.getpass("Please enter your password: ").lower())
-        if len(player.password) < 6:
+        game.player.password = str(pwd.getpass("Please enter your password: ").lower())
+        if len(game.player.password) < 6:
             print(
                 RD + "Password can't be less than 6 symbols, please choose another password\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" + SR)
-        elif player.password != pwd.getpass("Please repeat your password: ").lower() and len(
-                player.password) >= 6:
+        elif game.player.password != pwd.getpass("Please repeat your password: ").lower() and len(
+                game.player.password) >= 6:
             print(RD + "Passwords do not match !\nPlease try again\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" + SR)
         else:
-            player.password = md5(player.password, "dhackos")
-            apps = {"scanner": 1, "spam": 1, "bruteforce": 1, "sdk": 1, "ipspoofing": 1, "dechyper": 1}
-            stats.load({"eth_earned": 0.0, "shacked": 0, "xp": 0, "rep": 0, "scans": 0, "level": 1, "symbols": 0,
+            game.player.password = md5(game.player.password, "dhackos")
+            game.apps = {"scanner": 1, "spam": 1, "bruteforce": 1, "sdk": 1, "ipspoofing": 1, "dechyper": 1}
+            game.stats.load({"eth_earned": 0.0, "shacked": 0, "xp": 0, "rep": 0, "scans": 0, "level": 1, "symbols": 0,
                      "launches": 0, "miners": 1, "ownminers": 1, "proxy": 0})
-            miner = {"cpu": 1, "gpu": 1, "ram": 1, "software": 1}
-            stats.update(_player.StatsTypes.game_launches, 1)
+            game.miner = {"cpu": 1, "gpu": 1, "ram": 1, "software": 1}
+            game.stats.update(_player.StatsTypes.game_launches, 1)
             genTargetsList()
-            anticheat = 1
+            game.anti_cheat = 1
             break
 
 
 def bank_loop():
     while True:
         time.sleep(3600)
-        bank.perform_lifecycle()
+        game.bank.perform_lifecycle()
 
 def levelCheck():
-    if (player.xp // 1000) >= 1:
-        stats.update(_player.StatsTypes.level, player.xp // 1000)
-        player.xp = 0
-        updated_level = stats.get(_player.StatsTypes.level)
+    if (game.player.xp // 1000) >= 1:
+        game.stats.update(_player.StatsTypes.level, game.player.xp // 1000)
+        game.player.xp = 0
+        updated_level = game.stats.get(_player.StatsTypes.level)
         award = 10 * updated_level
-        player.ethereums = float(player.ethereums + award)
+        game.player.ethereums = float(game.player.ethereums + award)
         print(SB + GR + str(updated_level) + " level reached !\n You had been awarded by " + str(
             award) + " ETH !\n Congrats !" + SR)
 
@@ -283,8 +265,8 @@ def md5SaveCheckSum(fname, username, action):
 
 def genTarget(k, ip):
     target = {}
-    if player.username != "debug":
-        min = (apps["bruteforce"] + apps["sdk"] + apps["ipspoofing"] + apps["dechyper"]) // 4
+    if game.player.username != "debug":
+        min = (game.apps["bruteforce"] + game.apps["sdk"] + game.apps["ipspoofing"] + game.apps["dechyper"]) // 4
     else:
         min = 1000
     if k == 1:
@@ -292,7 +274,7 @@ def genTarget(k, ip):
     else:
         target["firewall"] = rnd.randint(min, (min + (rnd.randint(1, min)) + k))
     target = {"ip": ip,
-              "ethereums": rnd.uniform((apps["bruteforce"] + apps["sdk"] + apps["ipspoofing"] + apps["dechyper"]) // 4,
+              "ethereums": rnd.uniform((game.apps["bruteforce"] + game.apps["sdk"] + game.apps["ipspoofing"] + game.apps["dechyper"]) // 4,
                                        pi * float(target["firewall"]) + float(k)),
               "company": _strings.companies[rnd.randint(0, int(len(_strings.companies) - 1))], "port": rnd.randint(1, 65535),
               "service": "OpenSSH",
@@ -301,10 +283,9 @@ def genTarget(k, ip):
 
 
 def genTargetsList():
-    global ips, targets, target, scan_percent, gentargets
+    global target, scan_percent, gentargets
     gentargets = 1
-    ips = []
-    targets = {}
+    game.targets.clear()
     i = 0
     for i in range(0, 10000):
         scan_percent = float(i) / 100
@@ -312,15 +293,15 @@ def genTargetsList():
             scan_percent = 100.0
         ip = str(gen_ip())
         target = genTarget(i, ip)
-        targets[ip] = target
-        ips.append(str(ip))
+        game.targets[ip] = target
+        game.ips.append(str(ip))
     gentargets = 0
     target = {}
 
 
 def traceStart():
     global tracing, connection, target
-    tracing = int(apps["ipspoofing"] - target["firewall"]) + stats.get(_player.StatsTypes.proxies_injected) * 2
+    tracing = int(game.apps["ipspoofing"] - target["firewall"]) + game.stats.get(_player.StatsTypes.proxies_injected) * 2
     if tracing <= 13:
         # print(str(tracing) + "sec calculated") #debug_info
         tracing = 13
@@ -337,8 +318,8 @@ def proxyKill():
         time.sleep(30)
         chance = rnd.randint(0, 100)
         if chance >= 50:
-            if stats.get(_player.StatsTypes.proxies_injected) > 5:
-                stats.update(_player.StatsTypes.proxies_injected, -1)
+            if game.stats.get(_player.StatsTypes.proxies_injected) > 5:
+                game.stats.update(_player.StatsTypes.proxies_injected, -1)
 
 
 def loadTargetList():
@@ -351,9 +332,9 @@ def loadTargetList():
             if gentargets == 1:
                 continue
             attempt += 1
-            ip = str(ips[num])
-            target = targets[ip]
-            middle_strength = ((apps["bruteforce"] + apps["sdk"] + apps["ipspoofing"] + apps["dechyper"]) // 4)
+            ip = str(game.ips[num])
+            target = game.targets[ip]
+            middle_strength = ((game.apps["bruteforce"] + game.apps["sdk"] + game.apps["ipspoofing"] + game.apps["dechyper"]) // 4)
             if attempt <= 10000:
                 if target["firewall"] > (middle_strength + middle_strength):
                     continue
@@ -375,10 +356,10 @@ def resetTargetBalance():
     while True:
         time.sleep(60)
         for i in range(0, 1604):
-            ip = ips[i]
-            server = targets[ip]
+            ip = game.ips[i]
+            server = game.targets[ip]
             server["ethereums"] = rnd.uniform(0.0, pi * float(server["firewall"]) + float(server["k"]))
-            targets[ip] = server
+            game.targets[ip] = server
 
 
 def changeIPv(ipv):
@@ -386,19 +367,19 @@ def changeIPv(ipv):
     if input("Are you sure ?(Yes/No): ").lower() == "yes":
         print(GR + "Changing..." + WT)
         for i in progressbar.progressbar(range(100)): time.sleep(0.1)
-        player.ipv6 = ipv
+        game.player.ipv6 = ipv
         genTargetsList()
         if ipv == 0:
             print("Connecting to IPv4 network...")
         else:
             print("Connecting to IPv6 network..." + WT)
         for i in progressbar.progressbar(range(100)): time.sleep(0.02)
-        player.ip = gen_ip()
+        game.player.ip = gen_ip()
         print(SR + "[" + GR + SB + "SUCCESS" + SR + "]")
         cmd_msg.pop(2)
-        cmd_msg.insert(2, ('class:host', str(player.ip)))
+        cmd_msg.insert(2, ('class:host', str(game.player.ip)))
         time.sleep(1)
-        print(" \n" + YW + "Your IP: " + SB + GR + str(player.ip) + SR)
+        print(" \n" + YW + "Your IP: " + SB + GR + str(game.player.ip) + SR)
     else:
         print(SR + "[" + RD + SB + "ABORTED" + SR + "]")
 
@@ -407,17 +388,17 @@ def searchTargets(is_bot):
     global player_target_list, bot_target_list, bot_target
     if is_bot == 0:
         print(Fore.WHITE + Back.BLUE + SB + "dHackOS Scanner v.0.5-r.4" + SR)
-        stats.update(_player.StatsTypes.scans_performed, 1)
+        game.stats.update(_player.StatsTypes.scans_performed, 1)
         xp = rnd.randint(0, 50)
-        stats.update(_player.StatsTypes.experience, xp)
-        player.xp = player.xp + xp
-        stats.update(_player.StatsTypes.reputation, rnd.randint(0, 10))
-        print(Fore.CYAN + str(len(ips)) + " IPs in subnet")
+        game.stats.update(_player.StatsTypes.experience, xp)
+        game.player.xp = game.player.xp + xp
+        game.stats.update(_player.StatsTypes.reputation, rnd.randint(0, 10))
+        print(Fore.CYAN + str(len(game.ips)) + " IPs in subnet")
         print(Fore.CYAN + "Scanning subnet...")
         for i in progressbar.progressbar(range(100)): time.sleep(0.02)
         print("Deep scanning...")
-        for i in progressbar.progressbar(range(100)): time.sleep(0.05 / float(apps["scanner"]))
-        scantime = rnd.uniform(0.02, 1) * (100 / apps["scanner"])
+        for i in progressbar.progressbar(range(100)): time.sleep(0.05 / float(game.apps["scanner"]))
+        scantime = rnd.uniform(0.02, 1) * (100 / game.apps["scanner"])
         player_target_list = loadTargetList()
         print(GR + "Targets found !\nIP list:" + SB)
         for i in range(0, len(player_target_list)): print(str(i) + ". " + player_target_list[int(i)])
@@ -425,50 +406,39 @@ def searchTargets(is_bot):
             Style.NORMAL + "Please choose the IP, launch " + SB + "dHackOSf" + Style.NORMAL + " and enter the IP what you choosen" + SR)
     else:
         bot_target_list = loadTargetList()
-        bot_target = targets[bot_target_list[rnd.randint(0, (len(bot_target_list) - 1))]]
+        bot_target = game.targets[bot_target_list[rnd.randint(0, (len(bot_target_list) - 1))]]
         return bot_target
 
 
 def initGame():
-    global game_started, target, gentargets, news_show, player_target_list, miner_cl, tbr, game_bot, tracing, miner_power_status
-    game_started = 0
-    if game_started == 0:
-        game_started = 1
+    global target, gentargets, news_show, player_target_list, tracing
+    if game.is_started == 0:
+        game.is_started = 1
         target = {}
         gentargets = 0
-        game_started = 1
+        game.is_started = 1
         news_show = 0
         tracing = 0
         connection = 0
         player_target_list = []
-        miner_cl = threading.Thread(target=mineEthereum)
-        miner_cl.daemon = True
-        miner_cl.start()
-        tbr = threading.Thread(target=resetTargetBalance)  # target balance reset
-        tbr.daemon = True
-        tbr.start()
-        game_bot = threading.Thread(target=gameBot)
-        game_bot.daemon = True
-        game_bot.start()
-        bank_worker = threading.Thread(target=bank_loop)
-        bank_worker.daemon = True
-        bank_worker.start()
-        proxy_hunter = threading.Thread(target=proxyKill)
-        proxy_hunter.daemon = True
-        proxy_hunter.start()
+        game.thread_add(mineEthereum)  # init mining loop
+        game.thread_add(resetTargetBalance)  # init target balance reset loop
+        game.thread_add(gameBot)  # init game bot loop
+        game.thread_add(bank_loop)  # init bank worker loop
+        game.thread_add(proxyKill)  # init proxy hunter loop
 
 
 def mineEthereum():
-    global minehistory, minelog, mined, miner_enroll, miner_power_status
-    miner_enroll = 0
-    minehistory = {"1": "", "2": "", "3": "", "4": "", "5": "", "6": "", "7": "", "8": "", "9": "", "10": ""}
+    global minelog, mined
+    game.miner_enroll = 0
+    game.miner_history = {"1": "", "2": "", "3": "", "4": "", "5": "", "6": "", "7": "", "8": "", "9": "", "10": ""}
     minelog = 11
     firststart = 1
     while True:
         time.sleep(1800)
-        miners_owned = stats.get(_player.StatsTypes.miners_owned_total)
-        miners_total = stats.get(_player.StatsTypes.miners_total)
-        if miner_power_status == "on":
+        miners_owned = game.stats.get(_player.StatsTypes.miners_owned_total)
+        miners_total = game.stats.get(_player.StatsTypes.miners_total)
+        if game.miner_power_status == "on":
             try:
                 if 4 > miners_owned > 1:
                     collective_power = miners_owned * rnd.uniform(25, 100)
@@ -510,22 +480,22 @@ def mineEthereum():
             except:
                 collective_power = 10 ** 21
             miner_power = float(
-                (rnd.uniform(0.0000001, 0.0005) * rnd.randint(25, 100)) * miner["cpu"] * miner["gpu"] * miner["ram"] *
-                miner["software"] * collective_power)
+                (rnd.uniform(0.0000001, 0.0005) * rnd.randint(25, 100)) * game.miner["cpu"] * game.miner["gpu"] * game.miner["ram"] *
+                game.miner["software"] * collective_power)
             mined = float(
                 rnd.uniform(0.0000000001, 0.00000005) * miners_total * (miners_owned ** 3) + rnd.uniform(
-                    0.0000000001, 0.00000005 * miner["software"]) * miner_power * (miner_power / collective_power))
+                    0.0000000001, 0.00000005 * game.miner["software"]) * miner_power * (miner_power / collective_power))
             # print("Collective Power: %s | Miner Power: %s | Mined: %s" % (str(collective_power),str(miner_power),str(mined)))
             now = datetime.datetime.now()
-            player.ethereums = player.ethereums + mined
-            stats.update(_player.StatsTypes.eth_earned, mined)
-            if miner_enroll == 1:
+            game.player.ethereums = game.player.ethereums + mined
+            game.stats.update(_player.StatsTypes.eth_earned, mined)
+            if game.miner_enroll == 1:
                 continue
-            elif miner_enroll == 0 and game_started == 1:
+            elif game.miner_enroll == 0 and game.is_started == 1:
                 if minelog == 10 and firststart == 0:
-                    minehistory = {"1": minehistory["2"], "2": minehistory["3"], "3": minehistory["4"],
-                                   "4": minehistory["5"], "5": minehistory["6"], "6": minehistory["7"],
-                                   "7": minehistory["8"], "8": minehistory["9"], "9": minehistory["10"], "10": "",
+                    game.miner_history = {"1": game.miner_history["2"], "2": game.miner_history["3"], "3": game.miner_history["4"],
+                                   "4": game.miner_history["5"], "5": game.miner_history["6"], "6": game.miner_history["7"],
+                                   "7": game.miner_history["8"], "8": game.miner_history["9"], "9": game.miner_history["10"], "10": "",
                                    str(minelog): str(
                                        "[" + str(now.hour) + ":" + str(now.minute) + ":" + str(
                                            now.second) + "] Mined: " + str(
@@ -534,12 +504,12 @@ def mineEthereum():
                     if minelog == 1:
                         minelog = 10
                         firststart = 0
-                        minehistory[str(minelog)] = str(
+                        game.miner_history[str(minelog)] = str(
                             "[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "] Mined: " + str(
                                 '{0:.10f}'.format(mined)) + " ETH")
                     else:
                         minelog -= 1
-                        minehistory[str(minelog)] = str(
+                        game.miner_history[str(minelog)] = str(
                             "[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "] Mined: " + str(
                                 '{0:.10f}'.format(mined)) + " ETH")
             else:
@@ -547,23 +517,22 @@ def mineEthereum():
 
 
 def addNews(stolen, target):
-    global news
     now = datetime.datetime.now()
     if stolen > 0.0:
-        news[str(accident_n)] = {"time": str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "]"),
+        game.news[str(accident_n)] = {"time": str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "]"),
                                  "accident": str(
                                      "Someone stolen " + str('{0:.10f}'.format(stolen)) + " ETH from " + str(
                                          target["company"]) + "'s corporate network PC")}
     else:
-        news[str(accident_n)] = {"time": str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "]"),
+        game.news[str(accident_n)] = {"time": str("[" + str(now.hour) + ":" + str(now.minute) + ":" + str(now.second) + "]"),
                                  "accident": str(
                                      "Someone hacked " + str(target["company"]) + "'s corporate network PC")}
 
 
 def gameBot():
-    global news, accident_n, current_news, news_show
+    global accident_n, current_news, news_show
     news_show = 0
-    news = {"1": "", "2": "", "3": "", "4": "", "5": "", "6": "", "7": "", "8": "", "9": "", "10": ""}
+    game.news = {"1": "", "2": "", "3": "", "4": "", "5": "", "6": "", "7": "", "8": "", "9": "", "10": ""}
     firststart = 1
     accident_n = 11
     while True:
@@ -586,10 +555,11 @@ def gameBot():
             # print("\nNews show: " + str(news_show)) #debug_info
             if news_show == 1:
                 continue
-            elif news_show == 0 and game_started == 1:
+            elif news_show == 0 and game.is_started == 1:
                 if accident_n == 10 and firststart == 0:
-                    news = {"1": news["2"], "2": news["3"], "3": news["4"], "4": news["5"], "5": news["6"],
-                            "6": news["7"], "7": news["8"], "8": news["9"], "9": news["10"], "10": {}}
+                    game.news = {"1": game.news["2"], "2": game.news["3"], "3": game.news["4"], "4": game.news["5"],
+                                 "5": game.news["6"], "6": game.news["7"], "7": game.news["8"], "8": game.news["9"],
+                                 "9": game.news["10"], "10": {}}
                     addNews(stolen, target)
                 else:
                     if accident_n == 1:
@@ -599,7 +569,7 @@ def gameBot():
                     else:
                         accident_n -= 1
                         addNews(stolen, target)
-                targets[str(target["ip"])] = target
+                game.targets[str(target["ip"])] = target
                 # print("accident_n: " + str(accident_n) + " " + str(news[str(accident_n)])) #debug_info
             else:
                 continue
@@ -620,15 +590,15 @@ def init_dHackOS_Prompt():
         'path': 'ansicyan underline'
     })
     cmd_msg = [
-        ('class:username', str(player.username)),
+        ('class:username', str(game.player.username)),
         ('class:at', '@'),
-        ('class:host', str(player.ip)),
+        ('class:host', str(game.player.ip)),
         ('class:colon', ':'),
     ]
-    if player.dev == 1 and anticheat == 1:
+    if game.player.dev == 1 and game.anti_cheat == 1:
         cmd_msg.append(('class:path', '~/dhackos-dev'))
         cmd_msg.append(('class:pound', '# '))
-    elif anticheat == 1:
+    elif game.anti_cheat == 1:
         cmd_msg.append(('class:path', '~/dhackos'))
         cmd_msg.append(('class:pound', '# '))
     else:
@@ -679,8 +649,8 @@ while True:
             time.sleep(1)
             print(SB + Fore.LIGHTGREEN_EX + "Welcome back " + SR + username + SB + Fore.LIGHTGREEN_EX + "!")
             gamesave_load(username)
-            if success_load == 1:
-                print(" \n" + GR + "Your IP: " + SB + player.ip + SR + "\n")
+            if game.load_success == 1:
+                print(" \n" + GR + "Your IP: " + SB + game.player.ip + SR + "\n")
                 print(YW + "Type help for a list of commands\n " + SR)
                 initGame()
                 init_dHackOS_Prompt()
@@ -696,35 +666,35 @@ while True:
         time.sleep(2)
         print(SR + "[" + GR + "SUCCESS" + SR + "]\n")
         time.sleep(1)
-        print(SB + GR + "Welcome " + SR + SB + player.username + SB + GR + "!")
-        print(" \n" + "Your IP: " + SB + str(player.ip) + SR + "\n")
+        print(SB + GR + "Welcome " + SR + SB + game.player.username + SB + GR + "!")
+        print(" \n" + "Your IP: " + SB + str(game.player.ip) + SR + "\n")
         print(YW + "Type help for a list of commands\n " + SR)
         initGame()
         init_dHackOS_Prompt()
         break
 
     elif sol == "debug":
-        player.ethereums = 999999999
-        player.ip = "127.0.0.1"
-        player.dev = 0
-        player.ipv6 = ""
-        player.xp = 999999999
-        player.sentence = 0
-        player.username = "debug"
-        player.password = md5("debug", "dhackos")
-        apps = {"scanner": 999999999, "spam": 999999999, "bruteforce": 999999999, "sdk": 999999999,
+        game.player.ethereums = 999999999
+        game.player.ip = "127.0.0.1"
+        game.player.dev = 0
+        game.player.ipv6 = ""
+        game.player.xp = 999999999
+        game.player.sentence = 0
+        game.player.username = "debug"
+        game.player.password = md5("debug", "dhackos")
+        game.apps = {"scanner": 999999999, "spam": 999999999, "bruteforce": 999999999, "sdk": 999999999,
                 "ipspoofing": 999999999, "dechyper": 999999999}
-        stats.load({"eth_earned": 999999999, "shacked": 999999999, "xp": 999999999, "rep": 999999999, "scans": 999999999,
+        game.stats.load({"eth_earned": 999999999, "shacked": 999999999, "xp": 999999999, "rep": 999999999, "scans": 999999999,
                  "level": 999999999, "symbols": 999999999,
                  "launches": 999999999, "miners": 999999999, "ownminers": 999999999, "proxy": 999999999})
-        miner = {"cpu": 10, "gpu": 10, "ram": 10, "software": 10}
-        bank.load_bank_data_legacy({"balance": 999999999, "borrowed": 0, "deposit_rate": rnd.randint(5, 9),
+        game.miner = {"cpu": 10, "gpu": 10, "ram": 10, "software": 10}
+        game.bank.load_bank_data_legacy({"balance": 999999999, "borrowed": 0, "deposit_rate": rnd.randint(5, 9),
                 "credit_rate": rnd.randint(9, 13), "max_borrow": 300, "borrow_time": 0})
-        stats.update(_player.StatsTypes.game_launches, 1)
+        game.stats.update(_player.StatsTypes.game_launches, 1)
         genTargetsList()
-        anticheat = 1
+        game.anti_cheat = 1
         print(SR + GR + ".::SUCCESS::.")
-        print("Your IP: " + SB + str(player.ip) + SR)
+        print("Your IP: " + SB + str(game.player.ip) + SR)
         initGame()
         init_dHackOS_Prompt()
         break
@@ -734,38 +704,38 @@ sol = None
 dHackOSprmpt = PromptSession()
 while True:
     try:
-        if player.sentence == 3:
-            player.sentence = rnd.randint((player.sentence + 1), 10)
-            print(RD + "You has been sentenced for " + str(player.sentence) + " years" + SR)
-            print_vocabulary(stats.to_dict(), strings.get_section('stats_desc'), None, GR)
+        if game.player.sentence == 3:
+            game.player.sentence = rnd.randint((game.player.sentence + 1), 10)
+            print(RD + "You has been sentenced for " + str(game.player.sentence) + " years" + SR)
+            print_vocabulary(game.stats.to_dict(), strings.get_section('stats_desc'), None, GR)
             print(RD + "[GAME OVER]" + SR)
-            saveGame(str(player.username))
+            saveGame(str(game.player.username))
             break
-        elif player.sentence > 3:
-            print(RD + "You has been sentenced for " + str(player.sentence) + " years" + SR)
-            print_vocabulary(stats.to_dict(), strings.get_section('stats_desc'), None, GR)
+        elif game.player.sentence > 3:
+            print(RD + "You has been sentenced for " + str(game.player.sentence) + " years" + SR)
+            print_vocabulary(game.stats.to_dict(), strings.get_section('stats_desc'), None, GR)
             print(RD + "[GAME OVER]" + SR)
-            saveGame(str(player.username))
+            saveGame(str(game.player.username))
             break
         else:
             cmd = str(dHackOSprmpt.prompt(cmd_msg, style=cmd_style, auto_suggest=AutoSuggestFromHistory())).lower()
         levelCheck()
-        stats.update(_player.StatsTypes.symbols_typed, len(cmd))
+        game.stats.update(_player.StatsTypes.symbols_typed, len(cmd))
         if cmd == "help":
             print_vocabulary(strings.get_section('cmds'), None, None, YW)
         elif cmd == "apps":
-            print_vocabulary(apps, None, "lvl", YW)
+            print_vocabulary(game.apps, None, "lvl", YW)
         elif cmd == "balance":
             say(" \n" + SB + WT + Back.BLUE + "Ethereum Core v.8 CLI" + SR)
             print(BL + "Connecting..." + SR)
             time.sleep(3)
             print(BL + SB + "Your balance is: " + Fore.MAGENTA + '{0:.8f}'.format(
-                player.ethereums) + Fore.MAGENTA + " ETH" + SR + " \n")
+                game.player.ethereums) + Fore.MAGENTA + " ETH" + SR + " \n")
         elif cmd == "scan":
             searchTargets(0)
         elif cmd == "upgrade":
             print(" \n" + WT + Back.GREEN + "dHackOS upgrade CLI v.0.9-r.3" + SR)
-            print_vocabulary(apps, None, "lvl", GR)
+            print_vocabulary(game.apps, None, "lvl", GR)
             print(BL + "-=-=-=-=-=-=-=-=-=-=-" + SR)
             while True:
                 print(
@@ -773,7 +743,7 @@ while True:
                 program = input("What we're going to upgrade today ? " + SR).lower()
                 try:
                     if program != "all" and program != "exit":
-                        apps[program] = ((apps[program] + 1) - 1)
+                        game.apps[program] = ((game.apps[program] + 1) - 1)
                 except Exception as e:
                     print(RD + "Program not found or unknown input !\n" + str(e) + GR)
                     continue
@@ -787,20 +757,20 @@ while True:
                                 break
                             if program == "all":
                                 cost = float(0)
-                                for app in apps:
-                                    cost += float(pi * (float(apps[app]) + levels))
+                                for app in game.apps:
+                                    cost += float(pi * (float(game.apps[app]) + levels))
                             else:
-                                cost = float(pi * (apps[program] + levels))
+                                cost = float(pi * (game.apps[program] + levels))
                             print(YW + "Upgrade of " + SB + str(program) + SR + YW + " will cost you " + SB + str(
                                 cost) + " ETH." + SR)
                             if input(YW + "Upgrade (Y/N): " + SR).lower() == "y":
-                                if player.ethereums >= cost:
-                                    player.ethereums = float(float(player.ethereums) - float(cost))
+                                if game.player.ethereums >= cost:
+                                    game.player.ethereums = float(float(game.player.ethereums) - float(cost))
                                     if program == "all":
-                                        for app in apps:
-                                            apps[app] += levels
+                                        for app in game.apps:
+                                            game.apps[app] += levels
                                     else:
-                                        apps[program] = int(int(apps[program]) + int(levels))
+                                        game.apps[program] = int(int(game.apps[program]) + int(levels))
                                     print(SR + "[" + SB + GR + "SUCCESS" + SR + "]" + YW)
                                     break
                                 else:
@@ -818,7 +788,7 @@ while True:
                 else:
                     print(RD + "Unknown input !" + GR)
         elif cmd == "stats":
-            print_vocabulary(stats.to_dict(), strings.get_section('stats_desc'), None, Fore.CYAN)
+            print_vocabulary(game.stats.to_dict(), strings.get_section('stats_desc'), None, Fore.CYAN)
         elif cmd == "rescan_subnet":
             print(Fore.CYAN + "Scanning subnet...")
             sub_gen = threading.Thread(target=genTargetsList)
@@ -830,7 +800,7 @@ while True:
                 if scan_percent == 100.0:
                     print(GR + "Done !")
                     break
-            print(Fore.CYAN + str(len(ips)) + " servers in subnet" + SR)
+            print(Fore.CYAN + str(len(game.ips)) + " servers in subnet" + SR)
         elif cmd == "load_list":
             if player_target_list != []:
                 print(GR + "IP list:" + SB)
@@ -863,10 +833,10 @@ while True:
                         break
                     else:
                         try:
-                            target = targets[target_ip]
+                            target = game.targets[target_ip]
                         except:
                             try:
-                                target = targets[player_target_list[int(target_ip)]]
+                                target = game.targets[player_target_list[int(target_ip)]]
                                 target_ip = player_target_list[int(target_ip)]
                             except:
                                 print(
@@ -902,7 +872,7 @@ while True:
                         if fw_bypassed == False and scan_done == True:
                             print(Fore.CYAN + "Bypassing firewall..." + WT)
                             for i in progressbar.progressbar(range(100)): time.sleep(
-                                float((target["firewall"] / apps["ipspoofing"]) / 10))
+                                float((target["firewall"] / game.apps["ipspoofing"]) / 10))
                             fw_bypassed = True
                             print(YW + "Now you can connect to the target !" + GR + SB)
                         elif fw_bypassed == True:
@@ -927,7 +897,7 @@ while True:
                         if modules_loaded == False:
                             print(RD + "Loading dHackOSf modules..." + WT)
                             for i in progressbar.progressbar(range(100)): time.sleep(0.02)
-                            print_vocabulary(apps, None, "[OK]", RD)
+                            print_vocabulary(game.apps, None, "[OK]", RD)
                             modules_loaded = True
                             print(YW + "Now you can start the scan" + GR + SB)
                         else:
@@ -936,7 +906,7 @@ while True:
                         if hash_got == False and all_done == True:
                             print(Fore.CYAN + "Retrieving root hash..." + WT)
                             for i in progressbar.progressbar(range(100)): time.sleep(
-                                float((target["firewall"] / apps["sdk"]) / 10))
+                                float((target["firewall"] / game.apps["sdk"]) / 10))
                             hash_got = str(md5(target["ip"], str(rnd.randint(0, 10000))))
                             print(GR + "Success !\nHash: " + SB + hash_got)
                             print(YW + "Now you can start bruteforce process !" + GR + SB)
@@ -949,8 +919,8 @@ while True:
                         if all_done == True and hash_got != False and hash_got != True:
                             print("Bruteforcing..." + WT)
                             for i in progressbar.progressbar(range(100)): time.sleep(
-                                float(((pi + target["firewall"]) / apps["bruteforce"]) / 10))
-                            hack_chance = (apps["bruteforce"] + apps["sdk"] + apps["ipspoofing"] + apps[
+                                float(((pi + target["firewall"]) / game.apps["bruteforce"]) / 10))
+                            hack_chance = (game.apps["bruteforce"] + game.apps["sdk"] + game.apps["ipspoofing"] + game.apps[
                                 "dechyper"]) // 4
                             fw_vs_player = target["firewall"] - hack_chance
                             hack_done = True
@@ -965,8 +935,8 @@ while True:
                             print(SB + "Successful !")
                             print("Root access granted !")
                             xp = rnd.randint(0, 200)
-                            stats.update(_player.StatsTypes.experience, xp)
-                            player.xp = player.xp + xp
+                            game.stats.update(_player.StatsTypes.experience, xp)
+                            game.player.xp = game.player.xp + xp
                             connection = 1
                             trace = threading.Thread(target=traceStart)  # target balance reset
                             trace.daemon = True
@@ -983,14 +953,14 @@ while True:
                                     print(
                                         RD + "Connection was refused by local administrator...\nAttempting to revive remote session...")
                                     time.sleep(1)
-                                    player.ethereums = 0
-                                    stats.update(_player.StatsTypes.miners_total, None)
-                                    player.sentence += 1
-                                    stats.update(_player.StatsTypes.systems_hacked, 1)
+                                    game.player.ethereums = 0
+                                    game.stats.update(_player.StatsTypes.miners_total, None)
+                                    game.player.sentence += 1
+                                    game.stats.update(_player.StatsTypes.systems_hacked, 1)
                                     connection = 0
                                     print(
                                         "[dHackOSf] ERROR. FIREWALL IS BLOCKING SESSION !" + YW + "\n[dHackOS Corp] Your ETHs was seized by the FBI and injected miners deleted.\nYou will be sentenced after 3 FBI warnings.\nYou have " + str(
-                                            player.sentence) + " warnings. Be careful." + SR)
+                                            game.player.sentence) + " warnings. Be careful." + SR)
                                     break
                                 elif tcmd == "help":
                                     print(RD + "-==CONSOLE USING IS NOT RECOMMENDED FOR EMPLOYEE==-" + GR + SB)
@@ -1002,14 +972,14 @@ while True:
                                     print(
                                         ".::dHackOSf detected an Ethereum address field::.\nWallet dechypering..." + WT)
                                     for i in progressbar.progressbar(range(100)): time.sleep(
-                                        float(((pi + target["firewall"]) / apps["dechyper"]) / 10))
+                                        float(((pi + target["firewall"]) / game.apps["dechyper"]) / 10))
                                     print(
                                         ".::dHackOSf injected code which changes all typed addresses with your for this input field. Just press enter::." + YW)
                                     wcmd = input("Please enter the Ethereum wallet address to send money to: ")
                                     print(RD + ".::Replacing addresses::." + WT)
                                     for i in progressbar.progressbar(range(100)): time.sleep(0.03)
-                                    player.ethereums = player.ethereums + target["ethereums"]
-                                    stats.update(_player.StatsTypes.eth_earned, target["ethereums"])
+                                    game.player.ethereums = game.player.ethereums + target["ethereums"]
+                                    game.stats.update(_player.StatsTypes.eth_earned, target["ethereums"])
                                     print(GR + "Transfer successful !" + WT + str(
                                         target["ethereums"]) + YW + "ETH " + SR + "transferred." + SR)
                                     target["ethereums"] = 0.0
@@ -1017,10 +987,10 @@ while True:
                                     print(RD + "-==CONSOLE USING IS NOT RECOMMENDED FOR EMPLOYEE==-" + GR)
                                 elif tcmd == "exit":
                                     print(Fore.CYAN + "Spamming...")
-                                    earn = pi / (100 / (apps["spam"] + apps["ipspoofing"]))
-                                    player.ethereums = player.ethereums + earn
-                                    stats.update(_player.StatsTypes.systems_hacked, 1)
-                                    stats.update(_player.StatsTypes.eth_earned, earn)
+                                    earn = pi / (100 / (game.apps["spam"] + game.apps["ipspoofing"]))
+                                    game.player.ethereums = game.player.ethereums + earn
+                                    game.stats.update(_player.StatsTypes.systems_hacked, 1)
+                                    game.stats.update(_player.StatsTypes.eth_earned, earn)
                                     print(GR + "Success. Earned from spam: " + RD + str(
                                         earn) + " " + Back.YELLOW + "ETH" + SR)
                                     print(RD + "[dHackOSf] Console closed ! Disconnecting..." + SR)
@@ -1036,7 +1006,7 @@ while True:
                                     print(RD + "dHackOSf miner injector v.0.1-r3" + WT)
                                     if target["miner_injected"] == 0:
                                         for i in progressbar.progressbar(range(100)): time.sleep(0.04)
-                                        stats.update(_player.StatsTypes.miners_total, 1)
+                                        game.stats.update(_player.StatsTypes.miners_total, 1)
                                         print(GR + "Miner injected into kernel !")
                                         target["miner_injected"] = 1
                                     else:
@@ -1045,7 +1015,7 @@ while True:
                                     print(Fore.CYAN + "dHackOSf proxy init v.0.1.9-r1" + WT)
                                     if target["proxy"] == 0:
                                         for i in progressbar.progressbar(range(100)): time.sleep(0.02)
-                                        stats.update(_player.StatsTypes.proxies_injected, 1)
+                                        game.stats.update(_player.StatsTypes.proxies_injected, 1)
                                         print(GR + "Proxy initialized !")
                                         target["proxy"] = 1
                                     else:
@@ -1055,7 +1025,7 @@ while True:
                         else:
                             print(RD + "Bruteforce unsuccesful !")
                             hack_end = True
-                        targets[target["ip"]] = target
+                        game.targets[target["ip"]] = target
                         print("Disconnected from " + target["ip"])
                         print("Don't forget to start scan to find new target" + SR)
                         break
@@ -1069,12 +1039,12 @@ while True:
                 time.sleep(1)
                 print(
                     RD + "Stopping all processes...\n" + YW + "Saving session...\n" + WT + SB + "Disconnected..." + SR)
-                saveGame(str(player.username))
+                saveGame(str(game.player.username))
             else:
                 print(RD + "Stopping all processes...\n" + WT + SB + "Disconnected..." + SR)
             break
         elif cmd == "change_ip_v":
-            if player.ipv6 == 1:
+            if game.player.ipv6 == 1:
                 changeIPv(0)
             else:
                 changeIPv(1)
@@ -1086,13 +1056,13 @@ while True:
                 print(YW + "Reconnecting..." + WT)
                 time.sleep(1)
                 for i in progressbar.progressbar(range(100)): time.sleep(0.03)
-                player.ip = ip_generator.gen_ip_v4()()
+                game.player.ip = ip_generator.gen_ip_v4()()
                 cmd_msg.pop(2)
-                cmd_msg.insert(2, ('class:host', str(player.ip)))
+                cmd_msg.insert(2, ('class:host', str(game.player.ip)))
                 time.sleep(1)
                 print(SR + "[" + SB + GR + "SUCCESS" + SR + "]")
                 time.sleep(1)
-                print(YW + "Your IP: " + SB + GR + str(player.ip) + SR)
+                print(YW + "Your IP: " + SB + GR + str(game.player.ip) + SR)
             elif confirm == "no":
                 time.sleep(1)
                 print(YW + "Keeping your IP..." + SR)
@@ -1102,21 +1072,21 @@ while True:
 
         elif cmd == "miner":
             print(GR + "Last 10 enrollments from your miner" + SR)
-            miner_enroll = 1
+            game.miner_enroll = 1
             try:
                 for i in range(1, 11):
-                    print(GR + SB + str(i) + Style.NORMAL + minehistory[str(i)] + SR)
-                miner_enroll = 0
+                    print(GR + SB + str(i) + Style.NORMAL + game.miner_history[str(i)] + SR)
+                game.miner_enroll = 0
             except:
                 print(
                     YW + "Please wait for 10 seconds, miner is connecting to the mining pool transaction history..." + SR)
-                miner_enroll = 0
+                game.miner_enroll = 0
         elif cmd == "news":
             print(GR + "Latest cyber security news:" + SR)
             news_show = 1
             try:
                 for i in range(1, 11):
-                    current_news = news[str(i)]
+                    current_news = game.news[str(i)]
                     print(GR + SB + current_news["time"] + Style.NORMAL + current_news["accident"] + SR)
                 news_show = 0
             except Exception as e:
@@ -1127,7 +1097,7 @@ while True:
         elif cmd == "version":
             print_vocabulary(strings.get_section('about'), None, None, GR)
         elif cmd == "debug_info":
-            print_vocabulary(debug_info, None, None, Fore.MAGENTA)
+            print_vocabulary(game.get_debug_info(), None, None, Fore.MAGENTA)
         elif cmd == "scan_target":
             target = {}
             while True:
@@ -1141,7 +1111,7 @@ while True:
                         break
                     else:
                         try:
-                            target = targets[target_ip]
+                            target = game.targets[target_ip]
                         except:
                             print(RD + "Wrong IP entered !" + SR)
                             break
@@ -1159,7 +1129,7 @@ while True:
                 minecp = input("What we're going to upgrade today?: " + SR).lower()
                 try:
                     if minecp != "all" and minecp != "exit":
-                        miner[minecp] = ((miner[minecp] + 1) - 1)
+                        game.miner[minecp] = ((game.miner[minecp] + 1) - 1)
                 except Exception as e:
                     print(RD + "Nothing was found or unknown input !\n" + str(e) + GR)
                     continue
@@ -1168,36 +1138,36 @@ while True:
                         try:
                             cost = float(0)
                             if minecp == "all":
-                                for minecomp in miner:
-                                    if miner[minecomp] < 10:
+                                for minecomp in game.miner:
+                                    if game.miner[minecomp] < 10:
                                         # cost += float(pi * (float(miner_cost[str(miner[minecomp])]) + 1))
-                                        cost += float(pi * (float(miner[minecomp]) + 1))
+                                        cost += float(pi * (float(game.miner[minecomp]) + 1))
                                     else:
-                                        print(RD + "Max level reached for:\n%s" % strings.get('miner_components', minecomp + str(miner[minecomp])) + GR)
+                                        print(RD + "Max level reached for:\n%s" % strings.get('miner_components', minecomp + str(game.miner[minecomp])) + GR)
                             else:
                                 # cost += float(pi * (float(miner_cost[str(miner[minecp])]) + 1))
-                                cost += float(pi * (float(miner[minecp]) + 1))
+                                cost += float(pi * (float(game.miner[minecp]) + 1))
                             print("Upgrade of " + str(minecp) + " will cost you " + str(cost) + " ETH.")
                             if input("Upgrade (Y/N): ").lower() == "y":
-                                if player.ethereums >= cost:
-                                    player.ethereums = float(float(player.ethereums) - float(cost))
+                                if game.player.ethereums >= cost:
+                                    game.player.ethereums = float(float(game.player.ethereums) - float(cost))
                                     if minecp == "all":
-                                        for minecomp in miner:
-                                            if miner[minecomp] < 10:
-                                                miner[minecomp] += 1
+                                        for minecomp in game.miner:
+                                            if game.miner[minecomp] < 10:
+                                                game.miner[minecomp] += 1
                                                 print(Style.NORMAL + "New %s %s" % (strings.get('miner_desc', minecomp),
                                                                                     strings.get('miner_components', minecomp + str(
-                                                                                        miner[minecomp])) + SB))
+                                                                                        game.miner[minecomp])) + SB))
                                             else:
                                                 print(RD + "There is no available upgrades for:\n%s" %
-                                                      strings.get('miner_components', minecomp + str(miner[minecomp]) +
+                                                      strings.get('miner_components', minecomp + str(game.miner[minecomp]) +
                                                                   GR))
                                     else:
-                                        miner[minecp] += 1
+                                        game.miner[minecp] += 1
                                         print("New %s %s" % (
                                             strings.get('miner_desc', str(minecp)), strings.get('miner_components',
                                                                                                 minecp +
-                                                                                                str(miner[minecp])
+                                                                                                str(game.miner[minecp])
                                                                                                 )
                                         ))
                                     print(SR + "[" + SB + GR + "SUCCESS" + SR + "]" + GR + SB)
@@ -1220,20 +1190,20 @@ while True:
             if enable_sound == "yes" or enable_sound == "y":
                 bMinerSound()
             else:
-                bMinerNosound()
+                bMiner_nosound()
             try:
                 cost = float(0)
-                for minecomp in miner:
+                for minecomp in game.miner:
                     # cost += float(pi * (float(miner_cost[str(miner[minecomp])]) + 1))
-                    cost += float(pi * (float(miner[minecomp]) + 1) * stats.get(_player.StatsTypes.level))
+                    cost += float(pi * (float(game.miner[minecomp]) + 1) * game.stats.get(_player.StatsTypes.level))
                 miners = int(input(SB + GR + "How many miners you want to buy? (Numeric): " + SR))
-                cost = cost * stats.get(_player.StatsTypes.miners_owned_total) * miners
+                cost = cost * game.stats.get(_player.StatsTypes.miners_owned_total) * miners
                 print(SB + YW + "It will cost you %d ETH" % cost)
                 sol = str(input(SB + GR + "Buy ?(Yes/No): " + SR)).lower()
                 if sol == "y" or sol == "yes":
-                    if player.ethereums >= cost:
-                        player.ethereums -= cost
-                        stats.update(_player.StatsTypes.miners_owned_total, 1 * miners)
+                    if game.player.ethereums >= cost:
+                        game.player.ethereums -= cost
+                        game.stats.update(_player.StatsTypes.miners_owned_total, 1 * miners)
                         print(YW + "Transaction in process..." + SR + SB)
                         for i in progressbar.progressbar(range(100)): time.sleep(0.03)
                         time.sleep(1)
@@ -1246,13 +1216,13 @@ while True:
                 print(RD + "Invalid value entered !" + SR)
         elif cmd == "miner_info":
             while True:
-                for minecomp in miner:
+                for minecomp in game.miner:
                     print(GR + "%s %s" % (strings.get('miner_desc', minecomp), strings.get('miner_components',
-                                                                                           minecomp + str(miner[minecomp])
+                                                                                           minecomp + str(game.miner[minecomp])
                                                                                            )
                                           )
                           )
-                if miner_power_status == "on":
+                if game.miner_power_status == "on":
                     print("Temperature: %d °C\nCPU Load: %s %%" % (
                         rnd.randint(65, 75), str('{0:.2f}'.format(rnd.uniform(90, 99)))) + SR)
                     break
@@ -1266,7 +1236,7 @@ while True:
             else:
                 bankNosound()
             # bank = {"balance": 0, "borrowed": 0, "deposit_rate": rnd.randint(5,9), "credit_rate": rnd.randint(9,13), "max_borrow": 300, "borrow_time": 0}
-            bank_program(strings, bank, player, stats)
+            bank_program(strings, game.bank, game.player, game.stats)
         elif cmd == "hilo_game":
             print(GR + SB + "Welcome to High/Low Bet Game !")
             while True:
@@ -1275,12 +1245,12 @@ while True:
                     print(YW + "help - list HiLo Game commands\nbet - do bet\nexit - Exit from HiLo Game" + GR)
                 elif hilo == "bet":
                     try:
-                        print("Your balance: %s" % str('{0:.6f}'.format(player.ethereums)))
+                        print("Your balance: %s" % str('{0:.6f}'.format(game.player.ethereums)))
                         bet = float(input("How many ETH you want to bet ?(Numeric): "))
-                        if bet > player.ethereums:
+                        if bet > game.player.ethereums:
                             print(RD + "Insufficient balance !" + GR)
                             continue
-                        player.ethereums -= bet
+                        game.player.ethereums -= bet
                         bet_event = str(input("Next number will be lower or higher than 50 ?(lo/hi): ")).lower()
                         if bet_event == "hi" or bet_event == "lo" and bet >= 0:
                             while True:
@@ -1290,13 +1260,13 @@ while True:
                             print("Number is: %d" % num)
                             status = (num > 50)
                             if bet_event == "lo" and status == False:
-                                player.ethereums += bet * 2
+                                game.player.ethereums += bet * 2
                                 print("You won %s ETH !" % str(bet * 2))
-                                stats.update(_player.StatsTypes.eth_earned, (bet * 2))
+                                game.stats.update(_player.StatsTypes.eth_earned, (bet * 2))
                             elif bet_event == "hi" and status == True:
-                                player.ethereums += bet * 2
+                                game.player.ethereums += bet * 2
                                 print("You won %s ETH !" % str(bet * 2))
-                                stats.update(_player.StatsTypes.eth_earned, (bet * 2))
+                                game.stats.update(_player.StatsTypes.eth_earned, (bet * 2))
                             else:
                                 print(RD + "You lose !" + GR)
                         else:
@@ -1310,7 +1280,7 @@ while True:
                 else:
                     print(RD + "Unknown input !" + GR)
         elif cmd == "lanhunt":
-            player.ethereums += lanhunt.mainLanHuntCLI()
+            game.player.ethereums += lanhunt.mainLanHuntCLI()
         elif cmd == "debug":
             f = open("variables_dbg_out.txt", "w")
             f.write(str("\n=========LOCALS=========\n" + str(locals()) + "\n" + "=========GLOBALS=========\n" + str(
@@ -1318,16 +1288,16 @@ while True:
             f.close()
         elif cmd == "miner_stat":
             time.sleep(1)
-            if miner_power_status == "on":
-                print(SR + YW + "Miner status: " + SB + GR + str(miner_power_status) + SR)
+            if game.miner_power_status == "on":
+                print(SR + YW + "Miner status: " + SB + GR + str(game.miner_power_status) + SR)
             else:
-                print(SR + YW + "Miner status: " + SB + RD + str(miner_power_status))
+                print(SR + YW + "Miner status: " + SB + RD + str(game.miner_power_status))
         elif cmd == "miner_cfg":
             cfgcfg = str(input("Miner (on/off): ")).lower()
             if cfgcfg == "off":
-                miner_power_status = "off"
+                game.miner_power_status = "off"
             elif cfgcfg == "on":
-                miner_power_status = "on"
+                game.miner_power_status = "on"
             else:
                 print(RD + "Unknown input. Please try again" + SR)
         elif cmd == "clear":
