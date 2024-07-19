@@ -118,12 +118,10 @@ Links
 ----------
 - [dimankiev (Telegram)](https://t.me/dimankiev)
 - [dhackos (Telegram)](https://t.me/dhackos)
-- [aaa114-project](http://aaa114-project.pp.ua)
-- [dimankiev (E-Mail)](mailto:dimankiev@gmail.com)
 
 Maintainers
 -------------------
-- Dmitry Nelipa [(Telegram)](https://t.me/dimankiev) [(GitHub)](https://github.com/dimankiev)
+- Dmytro Nelipa [(Telegram)](https://t.me/dimankiev) [(GitHub)](https://github.com/dimankiev)
 
 Contributors
 -------------------
@@ -136,7 +134,7 @@ Alpha-testers
 License
 ---------
 Hacker Simulator is BSD-3-Clause Licensed  
-Copyright © 2018-2021 dimankiev (http://aaa114-project.pp.ua)
+Copyright © 2018-2024 dimankiev
 
 [1]: https://github.com/dimankiev/dhackos
 [2]: https://termux.com/
